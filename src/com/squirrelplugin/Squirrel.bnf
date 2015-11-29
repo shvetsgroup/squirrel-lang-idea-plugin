@@ -13,67 +13,71 @@
   tokenTypeClass="com.squirrelplugin.psi.SquirrelTokenType"
 
   tokens = [
-    LBRACE               =  '{'
-    RBRACE               =  '}'
-    LBRACK               =  '['
-    RBRACK               =  ']'
-    LPAREN               =  '('
-    RPAREN               =  ')'
-    DOUBLE_COLON          =  '::'
-    COLON                =  ':'
-    SEMICOLON            =  ';'
     SEMICOLON_SYNTHETIC  =  '<NL>'
-    COMMA                =  ','
-    EQ                   =  '=='
-    ASSIGN               =  '='
-    NOT_EQ               =  '!='
-    NOT                  =  '!'
+
+    RBRACE               =  '}'
+    RBRACK               =  ']'
+    RPAREN               =  ')'
     PLUS_PLUS            =  '++'
-    PLUS_ASSIGN          =  '+='
-    PLUS                 =  '+'
     MINUS_MINUS          =  '--'
-    MINUS_ASSIGN         =  '-='
-    MINUS                =  '-'
-    COND_OR              =  '||'
-    BIT_OR_ASSIGN        =  '|='
-    BIT_CLEAR_ASSIGN     =  '&^='
-    BIT_CLEAR            =  '&^'
-    COND_AND             =  '&&'
-    BIT_AND_ASSIGN       =  '&='
-    BIT_AND              =  '&'
-    BIT_OR               =  '|'
-    SHIFT_LEFT_ASSIGN    =  '<<='
-    SHIFT_LEFT           =  '<<'
+
+    LBRACE               =  '{'
+    LBRACK               =  '['
+    LPAREN               =  '('
+    COLON                =  ':'
+    DOUBLE_COLON         =  '::'
+    SEMICOLON            =  ';'
+    COMMA                =  ','
+    ASSIGN               =  '='
     SEND_CHANNEL         =  '<-'
-    LESS_OR_EQUAL        =  '<='
-    LESS                 =  '<'
-    BIT_XOR_ASSIGN       =  '^='
+    EQ                   =  '=='
+    NOT_EQ               =  '!='
+    CMP                  =  '<=>'
+    NOT                  =  '!'
+    COND_OR              =  '||'
+    COND_AND             =  '&&'
+    BIT_OR               =  '|'
     BIT_XOR              =  '^'
-    MUL_ASSIGN           =  '*='
-    MUL                  =  '*'
-    QUOTIENT_ASSIGN      =  '/='
-    QUOTIENT             =  '/'
-    REMAINDER_ASSIGN     =  '%='
-    REMAINDER            =  '%'
-    SHIFT_RIGHT_ASSIGN   =  '>>='
-    SHIFT_RIGHT          =  '>>'
+    BIT_AND              =  '&'
+    LESS                 =  '<'
+    LESS_OR_EQUAL        =  '<='
     GREATER_OR_EQUAL     =  '>='
     GREATER              =  '>'
+    SHIFT_LEFT           =  '<<'
+    SHIFT_RIGHT          =  '>>'
+    UNSIGNED_SHIFT_RIGHT =  '>>>'
+    PLUS_ASSIGN          =  '+='
+    PLUS                 =  '+'
+    MINUS_ASSIGN         =  '-='
+    MINUS                =  '-'
+    MUL                  =  '*'
+    QUOTIENT             =  '/'
+    REMAINDER            =  '%'
 
     LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
     BLOCK_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
-    IDENTIFIER = "regexp:\p{Alpha}\w*"
 
+    IDENTIFIER = "regexp:\p{Alpha}\w*"
     INT = "regexp:((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('\p{Alpha}')|(0|([1-9][0-9]*)))"
     FLOAT = "regexp:((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))"
     STRING = "regexp:(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")"
 
-    WS = "regexp:[\n\r\ \t\f]+"
+    NL="regexp:[\r\n]|\r\n"
+    WS="regexp:[ \t\f]"
   ]
 
   extends(".*Expr")=Expr
 }
 
+// ---------
+// NOTE:
+// ---------
+// In the preview mode, you should use <NL> instead of new lines in cases where you want the new line to work as
+// semicolon. This is a fix for a live preview feature where it can't distinguish between whitespace line breaks and the
+// useful ones.
+
+//// TEST DATA:
+//
 //i = 2;
 //i = 02;
 //i = 0x222;
@@ -151,16 +155,15 @@ LessGreaterEqualExpr ::= Expr ('<' | '<=' | '>' | '>=' ) Expr
 BitShiftExpr ::= Expr ('<<' | '>>' | '>>>') Expr
 PlusMinusExpr ::= Expr ( '+' | '-') Expr
 MulDivModExpr ::= Expr ('*' | '/' | '%') Expr
-UnaryExpr ::= ('-' | '+' | '!' | '~' | 'typeof') Expr
+UnaryExpr ::= ('-' | '+' | '!' | '~' | typeof) Expr
 //PlusPlusExp ::= Expr ( '++' | '--') // TODO a++ ++a
 //InstanceOfExp ::= Expr instanceof Expr
 ParenExpr ::= '(' Expr ')'
 
-SimpleRefExpr ::= Identifier {elementType=RefExpr}
-RefExpr ::= Expr '.' Identifier
+SimpleRefExpr ::= IDENTIFIER {elementType=RefExpr}
+RefExpr ::= Expr '.' IDENTIFIER
 LiteralExpr ::= Literal
 
-Identifier ::= IDENTIFIER
 Literal ::=
     INT
   | FLOAT

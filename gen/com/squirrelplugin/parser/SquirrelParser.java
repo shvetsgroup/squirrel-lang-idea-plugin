@@ -65,9 +65,6 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     else if (t == FUNCTION_NAME) {
       r = FunctionName(b, 0);
     }
-    else if (t == IDENTIFIER) {
-      r = Identifier(b, 0);
-    }
     else if (t == IN_EXPR) {
       r = Expr(b, 0, 13);
     }
@@ -224,18 +221,6 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, DOUBLE_COLON, IDENTIFIER);
     exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // IDENTIFIER
-  public static boolean Identifier(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Identifier")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, IDENTIFIER, r);
     return r;
   }
 
@@ -598,9 +583,9 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, ASSIGN);
     if (!r) r = consumeTokenSmart(b, SEND_CHANNEL);
-    if (!r) r = consumeTokenSmart(b, MUL_ASSIGN);
-    if (!r) r = consumeTokenSmart(b, QUOTIENT_ASSIGN);
-    if (!r) r = consumeTokenSmart(b, REMAINDER_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, "*=");
+    if (!r) r = consumeTokenSmart(b, "/=");
+    if (!r) r = consumeTokenSmart(b, "%=");
     if (!r) r = consumeTokenSmart(b, PLUS_ASSIGN);
     if (!r) r = consumeTokenSmart(b, MINUS_ASSIGN);
     exit_section_(b, m, null, r);
@@ -625,7 +610,7 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, EQ);
     if (!r) r = consumeTokenSmart(b, NOT_EQ);
-    if (!r) r = consumeTokenSmart(b, "<=>");
+    if (!r) r = consumeTokenSmart(b, CMP);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -650,7 +635,7 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, SHIFT_LEFT);
     if (!r) r = consumeTokenSmart(b, SHIFT_RIGHT);
-    if (!r) r = consumeTokenSmart(b, ">>>");
+    if (!r) r = consumeTokenSmart(b, UNSIGNED_SHIFT_RIGHT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -678,13 +663,13 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // '.' Identifier
+  // '.' IDENTIFIER
   private static boolean RefExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "RefExpr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, ".");
-    r = r && Identifier(b, l + 1);
+    r = r && consumeToken(b, IDENTIFIER);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -700,7 +685,7 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // '-' | '+' | '!' | '~' | 'typeof'
+  // '-' | '+' | '!' | '~' | typeof
   private static boolean UnaryExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "UnaryExpr_0")) return false;
     boolean r;
@@ -709,18 +694,18 @@ public class SquirrelParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeTokenSmart(b, PLUS);
     if (!r) r = consumeTokenSmart(b, NOT);
     if (!r) r = consumeTokenSmart(b, "~");
-    if (!r) r = consumeTokenSmart(b, "typeof");
+    if (!r) r = consumeTokenSmart(b, TYPEOF);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // Identifier
+  // IDENTIFIER
   public static boolean SimpleRefExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "SimpleRefExpr")) return false;
     if (!nextTokenIsFast(b, IDENTIFIER)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = Identifier(b, l + 1);
+    r = consumeTokenSmart(b, IDENTIFIER);
     exit_section_(b, m, REF_EXPR, r);
     return r;
   }

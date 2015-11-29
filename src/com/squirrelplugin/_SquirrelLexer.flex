@@ -2,6 +2,8 @@ package com.squirrelplugin;
 import com.intellij.lexer.*;
 import com.intellij.psi.tree.IElementType;
 import static com.squirrelplugin.psi.SquirrelTypes.*;
+import static com.squirrelplugin.SquirrelParserDefinition.*;
+import com.intellij.psi.TokenType;
 
 %%
 
@@ -18,83 +20,84 @@ import static com.squirrelplugin.psi.SquirrelTypes.*;
 %type IElementType
 %unicode
 
-EOL="\r"|"\n"|"\r\n"
-LINE_WS=[\ \t\f]
-WHITE_SPACE=({LINE_WS}|{EOL})+
-
 LINE_COMMENT=("//"|#)[^\r\n]*
 BLOCK_COMMENT="/"\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+"/")
 IDENTIFIER=[:letter:][a-zA-Z_0-9]*
 INT=((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('[:letter:]')|(0|([1-9][0-9]*)))
 FLOAT=((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))
 STRING=(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")
-WS=[\n\r\ \t\f]+
+NL=[\r\n]|\r\n
+WS=[ \t\f]
+
+%state MAYBE_SEMICOLON
 
 %%
 <YYINITIAL> {
-  {WHITE_SPACE}        { return com.intellij.psi.TokenType.WHITE_SPACE; }
+  {WS}                 { return TokenType.WHITE_SPACE; }
+  {NL}+                { return NLS; }
 
+  "}"                  { yybegin(MAYBE_SEMICOLON); return RBRACE; }
+  "]"                  { yybegin(MAYBE_SEMICOLON); return RBRACK; }
+  ")"                  { yybegin(MAYBE_SEMICOLON); return RPAREN; }
+  "++"                 { yybegin(MAYBE_SEMICOLON); return PLUS_PLUS; }
+  "--"                 { yybegin(MAYBE_SEMICOLON); return MINUS_MINUS; }
   "{"                  { return LBRACE; }
-  "}"                  { return RBRACE; }
   "["                  { return LBRACK; }
-  "]"                  { return RBRACK; }
   "("                  { return LPAREN; }
-  ")"                  { return RPAREN; }
-  "::"                 { return DOUBLE_COLON; }
   ":"                  { return COLON; }
+  "::"                 { return DOUBLE_COLON; }
   ";"                  { return SEMICOLON; }
-  "<NL>"               { return SEMICOLON_SYNTHETIC; }
   ","                  { return COMMA; }
-  "=="                 { return EQ; }
   "="                  { return ASSIGN; }
-  "!="                 { return NOT_EQ; }
-  "!"                  { return NOT; }
-  "++"                 { return PLUS_PLUS; }
-  "+="                 { return PLUS_ASSIGN; }
-  "+"                  { return PLUS; }
-  "--"                 { return MINUS_MINUS; }
-  "-="                 { return MINUS_ASSIGN; }
-  "-"                  { return MINUS; }
-  "||"                 { return COND_OR; }
-  "|="                 { return BIT_OR_ASSIGN; }
-  "&^="                { return BIT_CLEAR_ASSIGN; }
-  "&^"                 { return BIT_CLEAR; }
-  "&&"                 { return COND_AND; }
-  "&="                 { return BIT_AND_ASSIGN; }
-  "&"                  { return BIT_AND; }
-  "|"                  { return BIT_OR; }
-  "<<="                { return SHIFT_LEFT_ASSIGN; }
-  "<<"                 { return SHIFT_LEFT; }
   "<-"                 { return SEND_CHANNEL; }
-  "<="                 { return LESS_OR_EQUAL; }
-  "<"                  { return LESS; }
-  "^="                 { return BIT_XOR_ASSIGN; }
+  "=="                 { return EQ; }
+  "!="                 { return NOT_EQ; }
+  "<=>"                { return CMP; }
+  "!"                  { return NOT; }
+  "||"                 { return COND_OR; }
+  "&&"                 { return COND_AND; }
+  "|"                  { return BIT_OR; }
   "^"                  { return BIT_XOR; }
-  "*="                 { return MUL_ASSIGN; }
-  "*"                  { return MUL; }
-  "/="                 { return QUOTIENT_ASSIGN; }
-  "/"                  { return QUOTIENT; }
-  "%="                 { return REMAINDER_ASSIGN; }
-  "%"                  { return REMAINDER; }
-  ">>="                { return SHIFT_RIGHT_ASSIGN; }
-  ">>"                 { return SHIFT_RIGHT; }
+  "&"                  { return BIT_AND; }
+  "<"                  { return LESS; }
+  "<="                 { return LESS_OR_EQUAL; }
   ">="                 { return GREATER_OR_EQUAL; }
   ">"                  { return GREATER; }
+  "<<"                 { return SHIFT_LEFT; }
+  ">>"                 { return SHIFT_RIGHT; }
+  ">>>"                { return UNSIGNED_SHIFT_RIGHT; }
+  "+="                 { return PLUS_ASSIGN; }
+  "+"                  { return PLUS; }
+  "-="                 { return MINUS_ASSIGN; }
+  "-"                  { return MINUS; }
+  "*"                  { return MUL; }
+  "/"                  { return QUOTIENT; }
+  "%"                  { return REMAINDER; }
   "const"              { return CONST; }
   "local"              { return LOCAL; }
   "function"           { return FUNCTION; }
   "in"                 { return IN; }
+  "typeof"             { return TYPEOF; }
   "true"               { return TRUE; }
   "false"              { return FALSE; }
   "null"               { return NULL; }
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
   {BLOCK_COMMENT}      { return BLOCK_COMMENT; }
-  {IDENTIFIER}         { return IDENTIFIER; }
-  {INT}                { return INT; }
-  {FLOAT}              { return FLOAT; }
-  {STRING}             { return STRING; }
-  {WS}                 { return WS; }
+  {IDENTIFIER}         { yybegin(MAYBE_SEMICOLON); return IDENTIFIER; }
+  {INT}                { yybegin(MAYBE_SEMICOLON); return INT; }
+  {FLOAT}              { yybegin(MAYBE_SEMICOLON); return FLOAT; }
+  {STRING}             { yybegin(MAYBE_SEMICOLON); return STRING; }
 
-  [^] { return com.intellij.psi.TokenType.BAD_CHARACTER; }
+  [^] { return TokenType.BAD_CHARACTER; }
+}
+
+<MAYBE_SEMICOLON> {
+{WS}               { return TokenType.WHITE_SPACE; }
+{NL}               { yybegin(YYINITIAL); yypushback(yytext().length()); return SEMICOLON_SYNTHETIC; }
+{LINE_COMMENT}     { return LINE_COMMENT; }
+{BLOCK_COMMENT}    { return BLOCK_COMMENT; }
+
+.                  { yybegin(YYINITIAL); yypushback(yytext().length()); }
+
 }

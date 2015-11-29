@@ -63,10 +63,6 @@ public class SquirrelVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitIdentifier(@NotNull SquirrelIdentifier o) {
-    visitPsiElement(o);
-  }
-
   public void visitInExpr(@NotNull SquirrelInExpr o) {
     visitExpr(o);
   }

@@ -22,7 +22,6 @@ public interface SquirrelTypes {
   IElementType EXPR = new SquirrelElementType("EXPR");
   IElementType FUNCTION_DECLARATION = new SquirrelElementType("FUNCTION_DECLARATION");
   IElementType FUNCTION_NAME = new SquirrelElementType("FUNCTION_NAME");
-  IElementType IDENTIFIER = new SquirrelElementType("IDENTIFIER");
   IElementType IN_EXPR = new SquirrelElementType("IN_EXPR");
   IElementType LESS_GREATER_EQUAL_EXPR = new SquirrelElementType("LESS_GREATER_EQUAL_EXPR");
   IElementType LITERAL = new SquirrelElementType("LITERAL");
@@ -40,14 +39,10 @@ public interface SquirrelTypes {
 
   IElementType ASSIGN = new SquirrelTokenType("=");
   IElementType BIT_AND = new SquirrelTokenType("&");
-  IElementType BIT_AND_ASSIGN = new SquirrelTokenType("&=");
-  IElementType BIT_CLEAR = new SquirrelTokenType("&^");
-  IElementType BIT_CLEAR_ASSIGN = new SquirrelTokenType("&^=");
   IElementType BIT_OR = new SquirrelTokenType("|");
-  IElementType BIT_OR_ASSIGN = new SquirrelTokenType("|=");
   IElementType BIT_XOR = new SquirrelTokenType("^");
-  IElementType BIT_XOR_ASSIGN = new SquirrelTokenType("^=");
   IElementType BLOCK_COMMENT = new SquirrelTokenType("BLOCK_COMMENT");
+  IElementType CMP = new SquirrelTokenType("<=>");
   IElementType COLON = new SquirrelTokenType(":");
   IElementType COMMA = new SquirrelTokenType(",");
   IElementType COND_AND = new SquirrelTokenType("&&");
@@ -74,7 +69,6 @@ public interface SquirrelTypes {
   IElementType MINUS_ASSIGN = new SquirrelTokenType("-=");
   IElementType MINUS_MINUS = new SquirrelTokenType("--");
   IElementType MUL = new SquirrelTokenType("*");
-  IElementType MUL_ASSIGN = new SquirrelTokenType("*=");
   IElementType NOT = new SquirrelTokenType("!");
   IElementType NOT_EQ = new SquirrelTokenType("!=");
   IElementType NULL = new SquirrelTokenType("null");
@@ -82,21 +76,19 @@ public interface SquirrelTypes {
   IElementType PLUS_ASSIGN = new SquirrelTokenType("+=");
   IElementType PLUS_PLUS = new SquirrelTokenType("++");
   IElementType QUOTIENT = new SquirrelTokenType("/");
-  IElementType QUOTIENT_ASSIGN = new SquirrelTokenType("/=");
   IElementType RBRACE = new SquirrelTokenType("}");
   IElementType RBRACK = new SquirrelTokenType("]");
   IElementType REMAINDER = new SquirrelTokenType("%");
-  IElementType REMAINDER_ASSIGN = new SquirrelTokenType("%=");
   IElementType RPAREN = new SquirrelTokenType(")");
   IElementType SEMICOLON = new SquirrelTokenType(";");
   IElementType SEMICOLON_SYNTHETIC = new SquirrelTokenType("<NL>");
   IElementType SEND_CHANNEL = new SquirrelTokenType("<-");
   IElementType SHIFT_LEFT = new SquirrelTokenType("<<");
-  IElementType SHIFT_LEFT_ASSIGN = new SquirrelTokenType("<<=");
   IElementType SHIFT_RIGHT = new SquirrelTokenType(">>");
-  IElementType SHIFT_RIGHT_ASSIGN = new SquirrelTokenType(">>=");
   IElementType STRING = new SquirrelTokenType("STRING");
   IElementType TRUE = new SquirrelTokenType("true");
+  IElementType TYPEOF = new SquirrelTokenType("typeof");
+  IElementType UNSIGNED_SHIFT_RIGHT = new SquirrelTokenType(">>>");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
@@ -142,9 +134,6 @@ public interface SquirrelTypes {
       }
       else if (type == FUNCTION_NAME) {
         return new SquirrelFunctionNameImpl(node);
-      }
-      else if (type == IDENTIFIER) {
-        return new SquirrelIdentifierImpl(node);
       }
       else if (type == IN_EXPR) {
         return new SquirrelInExprImpl(node);

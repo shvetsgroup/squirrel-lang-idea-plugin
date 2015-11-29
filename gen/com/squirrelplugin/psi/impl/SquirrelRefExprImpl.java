@@ -29,8 +29,8 @@ public class SquirrelRefExprImpl extends SquirrelExprImpl implements SquirrelRef
 
   @Override
   @NotNull
-  public SquirrelIdentifier getIdentifier() {
-    return findNotNullChildByClass(SquirrelIdentifier.class);
+  public PsiElement getIdentifier() {
+    return findNotNullChildByType(IDENTIFIER);
   }
 
 }

@@ -11,6 +11,6 @@ public interface SquirrelRefExpr extends SquirrelExpr {
   SquirrelExpr getExpr();
 
   @NotNull
-  SquirrelIdentifier getIdentifier();
+  PsiElement getIdentifier();
 
 }
