@@ -1,6 +1,7 @@
-package com.squirrelplugin;
+package com.squirrelplugin.lexer;
 
 import com.intellij.lexer.FlexAdapter;
+import com.squirrelplugin._SquirrelLexer;
 
 import java.io.Reader;
 

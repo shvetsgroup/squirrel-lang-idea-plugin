@@ -13,6 +13,7 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.squirrelplugin.lexer.SquirrelLexerAdapter;
 import com.squirrelplugin.parser.SquirrelParser;
 import com.squirrelplugin.psi.SquirrelFile;
 import com.squirrelplugin.psi.SquirrelTokenType;

@@ -1,10 +1,8 @@
 package com.squirrelplugin.highlighting;
 
 import com.intellij.lexer.Lexer;
-import com.squirrelplugin.SquirrelLexerAdapter;
+import com.squirrelplugin.lexer.SquirrelLexerAdapter;
 import com.squirrelplugin.SquirrelParserDefinition;
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
-import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.TokenType;
