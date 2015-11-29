@@ -1,0 +1,7 @@
+.idea
+.DS_Store
+out
+out/*
+src/com/squirrelplugin/_go.flex
+src/com/squirrelplugin/go.bnf
+src/com/squirrelplugin/test.bnf

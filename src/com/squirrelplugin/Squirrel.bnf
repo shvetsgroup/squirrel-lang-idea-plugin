@@ -1,0 +1,169 @@
+{
+  parserClass="com.squirrelplugin.parser.SquirrelParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Squirrel"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.squirrelplugin.psi"
+  psiImplPackage="com.squirrelplugin.psi.impl"
+
+  elementTypeHolderClass="com.squirrelplugin.psi.SquirrelTypes"
+  elementTypeClass="com.squirrelplugin.psi.SquirrelElementType"
+  tokenTypeClass="com.squirrelplugin.psi.SquirrelTokenType"
+
+  tokens = [
+    LBRACE               =  '{'
+    RBRACE               =  '}'
+    LBRACK               =  '['
+    RBRACK               =  ']'
+    LPAREN               =  '('
+    RPAREN               =  ')'
+    DOUBLE_COLON          =  '::'
+    COLON                =  ':'
+    SEMICOLON            =  ';'
+    SEMICOLON_SYNTHETIC  =  '<NL>'
+    COMMA                =  ','
+    EQ                   =  '=='
+    ASSIGN               =  '='
+    NOT_EQ               =  '!='
+    NOT                  =  '!'
+    PLUS_PLUS            =  '++'
+    PLUS_ASSIGN          =  '+='
+    PLUS                 =  '+'
+    MINUS_MINUS          =  '--'
+    MINUS_ASSIGN         =  '-='
+    MINUS                =  '-'
+    COND_OR              =  '||'
+    BIT_OR_ASSIGN        =  '|='
+    BIT_CLEAR_ASSIGN     =  '&^='
+    BIT_CLEAR            =  '&^'
+    COND_AND             =  '&&'
+    BIT_AND_ASSIGN       =  '&='
+    BIT_AND              =  '&'
+    BIT_OR               =  '|'
+    SHIFT_LEFT_ASSIGN    =  '<<='
+    SHIFT_LEFT           =  '<<'
+    SEND_CHANNEL         =  '<-'
+    LESS_OR_EQUAL        =  '<='
+    LESS                 =  '<'
+    BIT_XOR_ASSIGN       =  '^='
+    BIT_XOR              =  '^'
+    MUL_ASSIGN           =  '*='
+    MUL                  =  '*'
+    QUOTIENT_ASSIGN      =  '/='
+    QUOTIENT             =  '/'
+    REMAINDER_ASSIGN     =  '%='
+    REMAINDER            =  '%'
+    SHIFT_RIGHT_ASSIGN   =  '>>='
+    SHIFT_RIGHT          =  '>>'
+    GREATER_OR_EQUAL     =  '>='
+    GREATER              =  '>'
+
+    LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
+    BLOCK_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
+    IDENTIFIER = "regexp:\p{Alpha}\w*"
+
+    INT = "regexp:((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('\p{Alpha}')|(0|([1-9][0-9]*)))"
+    FLOAT = "regexp:((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))"
+    STRING = "regexp:(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")"
+
+    WS = "regexp:[\n\r\ \t\f]+"
+  ]
+
+  extends(".*Expr")=Expr
+}
+
+//i = 2;
+//i = 02;
+//i = 0x222;
+//i = 'c';
+//f = 0.52;
+//f = 1.e2;
+//f = 1.e-2;
+//s = "I'm a string"<NL>
+//s = @"I'm a string verbatim string"<NL>
+//s = @"I'm a multiline
+//string verbatim string"<NL>
+//b = true;
+//b = false;
+//n = null;
+
+SquirrelFile ::= StatementList <<eof>> {pin(".*")=1}
+
+StatementWithoutSemi ::=
+    LINE_COMMENT
+    | BLOCK_COMMENT
+    | FunctionDeclaration
+    | Block
+
+StatementsWithSemi ::=
+    Expr
+    | ConstDeclaration
+    | LocalVarDeclaration
+
+private semi ::= SEMICOLON_SYNTHETIC | SEMICOLON
+private SingleStatement ::= (StatementsWithSemi | StatementWithoutSemi)
+private StatementList ::= (StatementWithoutSemi semi* StatementList | StatementsWithSemi semi+ StatementList | SingleStatement) semi*
+
+Block ::= LBRACE (RBRACE | StatementList RBRACE)
+
+ConstDeclaration ::= const IDENTIFIER ASSIGN Literal
+
+
+LocalVarDeclaration ::= local VarDeclaration
+VarDeclaration ::= IDENTIFIER [ ASSIGN Expr ][ COMMA VarDeclaration ]
+
+
+
+FunctionDeclaration ::= function FunctionName Block?
+FunctionName ::= IDENTIFIER (DOUBLE_COLON IDENTIFIER)?
+
+
+Expr ::= CommaExpr
+  | AssignExpr
+  | ElvisExpr
+  | OrExpr
+  | (AndExpr | InExpr)
+  | BitOrExpr
+  | BitXorExpr
+  | BitAndExpr
+  | CompareExpr
+  | LessGreaterEqualExpr
+  | BitShiftExpr
+  | PlusMinusExpr
+  | MulDivModExpr
+  | (UnaryExpr/*| InstanceOfExp | PlusPlusExp */ )
+  | RefExpr
+  | (SimpleRefExpr | LiteralExpr | ParenExpr)
+
+CommaExpr ::= Expr ',' Expr
+AssignExpr ::= Expr ('=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-=' ) Expr { rightAssociative=true }
+ElvisExpr ::= Expr '?' Expr ':' Expr
+OrExpr ::= Expr '||' Expr
+AndExpr ::= Expr '&&' Expr
+InExpr ::= Expr in Expr
+BitOrExpr ::= Expr '|' Expr
+BitXorExpr ::= Expr '^' Expr
+BitAndExpr ::= Expr '&' Expr
+CompareExpr ::= Expr ('==' | '!=' | '<=>' ) Expr
+LessGreaterEqualExpr ::= Expr ('<' | '<=' | '>' | '>=' ) Expr
+BitShiftExpr ::= Expr ('<<' | '>>' | '>>>') Expr
+PlusMinusExpr ::= Expr ( '+' | '-') Expr
+MulDivModExpr ::= Expr ('*' | '/' | '%') Expr
+UnaryExpr ::= ('-' | '+' | '!' | '~' | 'typeof') Expr
+//PlusPlusExp ::= Expr ( '++' | '--') // TODO a++ ++a
+//InstanceOfExp ::= Expr instanceof Expr
+ParenExpr ::= '(' Expr ')'
+
+SimpleRefExpr ::= Identifier {elementType=RefExpr}
+RefExpr ::= Expr '.' Identifier
+LiteralExpr ::= Literal
+
+Identifier ::= IDENTIFIER
+Literal ::=
+    INT
+  | FLOAT
+  | STRING
+  | true | false
+  | null

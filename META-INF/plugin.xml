@@ -1,0 +1,43 @@
+<idea-plugin version="2">
+    <id>com.squirrelplugin.test</id>
+    <name>Squirrel</name>
+    <version>1.0</version>
+    <vendor email="neochief@shvetsgroup.com" url="http://shvetsgroup.com">Shvets Group</vendor>
+
+    <description><![CDATA[
+      Squirrel language support.
+    ]]></description>
+
+    <change-notes><![CDATA[
+    ]]>
+    </change-notes>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="131"/>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products
+    <depends>com.intellij.modules.lang</depends>
+    -->
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <fileTypeFactory implementation="com.squirrelplugin.SquirrelFileTypeFactory"/>
+        <lang.parserDefinition language="Squirrel" implementationClass="com.squirrelplugin.SquirrelParserDefinition"/>
+        <lang.syntaxHighlighterFactory key="Squirrel" implementationClass="com.squirrelplugin.highlighting.SquirrelSyntaxHighlighterFactory"/>
+    </extensions>
+
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
+
+    <project-components>
+        <!-- Add your project components here -->
+    </project-components>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>
