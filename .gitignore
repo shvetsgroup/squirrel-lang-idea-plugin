@@ -1,7 +1,6 @@
 .idea
 .DS_Store
 out
-out/*
 _go.flex
 go.bnf
 test.bnf
