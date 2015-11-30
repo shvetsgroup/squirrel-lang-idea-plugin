@@ -1,4 +1,13 @@
 WORK IN PROGRESS.
 
-1. Run build.sh
-2. Run "Plugin" run configuration.
+## Contribution guide
+
+### Preparation
+
+1. Download IntelliJ IDEA Community edition binaries from https://www.jetbrains.com/idea/
+2. Run install.dev to clone the IntelliJ IDEA Community edition sources.
+
+### Running plugin
+
+1. Run build.sh to build the plugin.
+2. Launch "Plugin" run configuration to test it in IDEA.
