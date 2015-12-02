@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/go" />
     </content>
     <orderEntry type="jdk" jdkName="IntelliJ IDEA Community Edition IC-143.382.35" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />

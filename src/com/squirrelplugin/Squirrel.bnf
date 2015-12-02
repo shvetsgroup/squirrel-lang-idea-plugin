@@ -18,46 +18,56 @@
     RBRACE               =  '}'
     RBRACK               =  ']'
     RPAREN               =  ')'
-    PLUS_PLUS            =  '++'
-    MINUS_MINUS          =  '--'
+    INCREMENT            =  '++'
+    DECREMENT            =  '--'
 
     LBRACE               =  '{'
     LBRACK               =  '['
     LPAREN               =  '('
-    COLON                =  ':'
     DOUBLE_COLON         =  '::'
+    COLON                =  ':'
     SEMICOLON            =  ';'
     COMMA                =  ','
-    ASSIGN               =  '='
-    SEND_CHANNEL         =  '<-'
+    MULTI_ARGS           =  '...'
+    CLASS_ATTR_START     =  '</'
+    CLASS_ATTR_END       =  '/>'
+    SHIFT_LEFT           =  '<<'
+    SHIFT_RIGHT          =  '>>'
+    UNSIGNED_SHIFT_RIGHT =  '>>>'
+    CMP                  =  '<=>'
     EQ                   =  '=='
     NOT_EQ               =  '!='
-    CMP                  =  '<=>'
-    NOT                  =  '!'
+    LESS_OR_EQUAL        =  '<='
+    GREATER_OR_EQUAL     =  '>='
+    SEND_CHANNEL         =  '<-'
+    PLUS_ASSIGN          =  '+='
+    MINUS_ASSIGN         =  '-='
+    MUL_ASSIGN           =  '*='
+    QUOTIENT_ASSIGN      =  '/='
+    REMAINDER_ASSIGN     =  '%='
     COND_OR              =  '||'
     COND_AND             =  '&&'
+    ASSIGN               =  '='
+    NOT                  =  '!'
+    BIT_NOT              =  '~'
     BIT_OR               =  '|'
     BIT_XOR              =  '^'
     BIT_AND              =  '&'
     LESS                 =  '<'
-    LESS_OR_EQUAL        =  '<='
-    GREATER_OR_EQUAL     =  '>='
     GREATER              =  '>'
-    SHIFT_LEFT           =  '<<'
-    SHIFT_RIGHT          =  '>>'
-    UNSIGNED_SHIFT_RIGHT =  '>>>'
-    PLUS_ASSIGN          =  '+='
     PLUS                 =  '+'
-    MINUS_ASSIGN         =  '-='
     MINUS                =  '-'
     MUL                  =  '*'
     QUOTIENT             =  '/'
     REMAINDER            =  '%'
+    QUESTION             =  '?'
+    AT                   =  '@'
+    PERIOD               =  '.'
 
     LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
     BLOCK_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
 
-    IDENTIFIER = "regexp:\p{Alpha}\w*"
+    IDENTIFIER = "regexp:[\p{Alpha}_]\w*"
     INT = "regexp:((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('\p{Alpha}')|(0|([1-9][0-9]*)))"
     FLOAT = "regexp:((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))"
     STRING = "regexp:(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")"
@@ -70,11 +80,16 @@
 }
 
 // ---------
-// NOTE:
+// PREVIEW MODE GOTCHAS
 // ---------
-// In the preview mode, you should use <NL> instead of new lines in cases where you want the new line to work as
+// The optional semicolon logic is placed inside lexer. Therefore in order to test stuff in preview mode, you should
+// keep in mind that:
+//
+// 1. In the preview mode, you should use <NL> instead of new lines in cases where you want the new line to work as
 // semicolon. This is a fix for a live preview feature where it can't distinguish between whitespace line breaks and the
 // useful ones.
+//
+// 2. Also, you should put semicolons after } in places where you expect the virtual semicolon to be placed.
 
 //// TEST DATA:
 //
@@ -92,43 +107,118 @@
 //b = true;
 //b = false;
 //n = null;
+//exp = a ? i + 2 : b > -3 + +23 * i++ / 34 % ~ 3
+//nc = i++ + ++i - --i - i-- + +i - -i - -(-i) + -i-- + errors_on_right + ---i + --(-i) + --i--i
+//
+//const a=-2;
+//const b=2;
+//enum c {};
+//enum c {a,b,c=4, h="23", h=23, h=-2};
+//local o, a=2, b=23, c = (1,2), d = function(a,b=2,c=2){}, e = @(a,b,...) a + (b, f = 2), g=[123, function(){}, @()(1+2)], c = class {};
+//function a(a, b, a=2, a=2) {};
+//a(a, 2, g[1]);
+//class Test.B extends Test {
+//    constructor (a) {
+//    }
+//    a = function (asd){
+//    }
+//    function sds() {
+//    }
+//    g = "234"
+//}
 
-SquirrelFile ::= StatementList <<eof>> {pin(".*")=1}
 
-StatementWithoutSemi ::=
-    LINE_COMMENT
-    | BLOCK_COMMENT
+
+SquirrelFile ::= Statements <<eof>>
+
+private semi ::= '<NL>' | ';'
+
+private Statements ::= Statement? semi+ Statements | Statement semi* | semi
+
+Statement ::=
+    Block
+    | Expr
     | FunctionDeclaration
-    | Block
-
-StatementsWithSemi ::=
-    Expr
+    | ClassDeclaration
     | ConstDeclaration
-    | LocalVarDeclaration
+    | EnumDeclaration
+    | LocalDeclaration
 
-private semi ::= SEMICOLON_SYNTHETIC | SEMICOLON
-private SingleStatement ::= (StatementsWithSemi | StatementWithoutSemi)
-private StatementList ::= (StatementWithoutSemi semi* StatementList | StatementsWithSemi semi+ StatementList | SingleStatement) semi*
+    | Return
+    | Break
+    | Continue
+    | Yield
+    | Throw
 
-Block ::= LBRACE (RBRACE | StatementList RBRACE)
+    | ForLoop
+    | ForEachLoop
+    | WhileLoop
+    | DoWhileLoop
+    | IfConditional
+    | SwitchConditional
+    | TryCatch
 
-ConstDeclaration ::= const IDENTIFIER ASSIGN Literal
+//private StatementRecover ::= !('}' | '++' | '--' | '{' | '[' | '(' | ';' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
+
+Block ::= '{' ('}' | Statements '}')
+
+ConstDeclaration ::= const ConstExpression
+ConstExpression ::= Id '=' Literal
+
+EnumDeclaration ::= enum Id EnumItemDeclarations
+private EnumItemDeclarations ::= '{' EnumItemDeclaration (',' EnumItemDeclaration)* '}' | '{' '}'
+EnumItemDeclaration ::= Id [ '=' Literal ]
+
+LocalDeclaration ::= local [VarDeclarations | FunctionDeclaration]
+private VarDeclarations ::= VarDeclaration ',' VarDeclarations | VarDeclaration
+VarDeclaration ::= Id [ '=' ExprNoComma ]
+
+FunctionDeclaration ::= function FunctionName FunctionParametersAndBody
+FunctionName ::= Id ('::' (Id | constructor))*
+private FunctionParametersAndBody ::= FunctionParameters Statement
+
+FunctionParameters ::=
+'(' FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))? ')'
+| '(' FunctionDefaultParameter (',' FunctionDefaultParameter)* ')'
+| '(' FunctionVariableNumberParameter? ')'
+
+FunctionParameter ::= Id (!'=')
+FunctionDefaultParameter ::= Id '=' ExprNoComma
+FunctionVariableNumberParameter ::= '...'
+
+ClassDeclaration ::= class ClassName [extends ClassName] ClassBody
+ClassName ::= Id ('.' Id)*
+private ClassBody ::= '{' ClassMember* '}'
+ClassMember ::= (ConstructorDeclaration | ClassAttribute? static? RegularClassMember) ';'?
+private RegularClassMember ::= FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma
+ConstructorDeclaration ::= constructor FunctionParametersAndBody
+ClassAttribute ::= '</' KeyValue* '/>'
+
+Break ::= break
+Continue ::= continue
+Return ::= return Expr?
+Yield ::= yield Expr
+Throw ::= throw Expr
+
+ForLoop ::= for '(' [LocalDeclaration | Expr] ';' Expr? ';' Expr? ')' Statement
+ForEachLoop ::= foreach '(' [Id ','] Id in Expr ')' Statement
+WhileLoop ::= while '(' Expr ')' Statement
+DoWhileLoop ::= do Statement while '(' Expr ')'
+IfConditional ::= if '(' Expr ')' Statement [';'? else Statement]
+
+SwitchConditional ::= switch '(' Expr ')' '{' SwitchCase* DefaultCase? '}'
+SwitchCase ::= case Expr ':' Statements*
+DefaultCase::= default ':' Statements*
+
+TryCatch ::= try Statement catch '(' Id ')' Statement
 
 
-LocalVarDeclaration ::= local VarDeclaration
-VarDeclaration ::= IDENTIFIER [ ASSIGN Expr ][ COMMA VarDeclaration ]
-
-
-
-FunctionDeclaration ::= function FunctionName Block?
-FunctionName ::= IDENTIFIER (DOUBLE_COLON IDENTIFIER)?
-
-
-Expr ::= CommaExpr
+Expr ::=
+  CommaExpr
   | AssignExpr
   | ElvisExpr
   | OrExpr
-  | (AndExpr | InExpr)
+  | second_expr_group
   | BitOrExpr
   | BitXorExpr
   | BitAndExpr
@@ -137,9 +227,36 @@ Expr ::= CommaExpr
   | BitShiftExpr
   | PlusMinusExpr
   | MulDivModExpr
-  | (UnaryExpr/*| InstanceOfExp | PlusPlusExp */ )
-  | RefExpr
-  | (SimpleRefExpr | LiteralExpr | ParenExpr)
+  | first_expr_group
+  | c_expr_group
+  | b_expr_group
+  | a_expr_group
+
+private ExprNoComma ::=
+  AssignExpr
+  | ElvisExpr
+  | OrExpr
+  | second_expr_group
+  | BitOrExpr
+  | BitXorExpr
+  | BitAndExpr
+  | CompareExpr
+  | LessGreaterEqualExpr
+  | BitShiftExpr
+  | PlusMinusExpr
+  | MulDivModExpr
+  | first_expr_group
+  | c_expr_group
+  | b_expr_group
+  | a_expr_group
+
+//private ExpressionRecover ::= !('<NL>' | '}' | ']' | ')' | '++' | '--' | '{' | '[' | '(' | ':' | '::' | ';' | ',' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
+
+private a_expr_group ::= (SimpleRefExpr | LiteralExpr | ParenExpr)
+private b_expr_group ::= (ArrayItemExpr | RefExpr | FunctionCallExpr)
+private c_expr_group ::= (ClassExpr | TableExpr | ArrayExpr | FunctionExpr | LambdaFunctionExpr )
+private first_expr_group ::= (UnaryExpr | PostIncrementExpr | PreIncrementExpr | InstanceOfExpr )
+private second_expr_group ::= (AndExpr | InExpr)
 
 CommaExpr ::= Expr ',' Expr
 AssignExpr ::= Expr ('=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-=' ) Expr { rightAssociative=true }
@@ -155,18 +272,31 @@ LessGreaterEqualExpr ::= Expr ('<' | '<=' | '>' | '>=' ) Expr
 BitShiftExpr ::= Expr ('<<' | '>>' | '>>>') Expr
 PlusMinusExpr ::= Expr ( '+' | '-') Expr
 MulDivModExpr ::= Expr ('*' | '/' | '%') Expr
-UnaryExpr ::= ('-' | '+' | '!' | '~' | typeof) Expr
-//PlusPlusExp ::= Expr ( '++' | '--') // TODO a++ ++a
-//InstanceOfExp ::= Expr instanceof Expr
+UnaryExpr ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expr
+PostIncrementExpr ::= Id (INCREMENT | DECREMENT)
+PreIncrementExpr ::= (INCREMENT | DECREMENT) Id
+InstanceOfExpr ::= Expr instanceof Expr
 ParenExpr ::= '(' Expr ')'
+ClassExpr ::= class ClassBody
+FunctionExpr ::= function FunctionParametersAndBody
+LambdaFunctionExpr ::= '@' FunctionParameters ExprNoComma
+FunctionCallExpr ::= Expr FunctionArguments
+FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')'
+FunctionArgument ::= ExprNoComma
+ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'
+ArrayItemExpr ::= Expr '[' ExprNoComma ']'
+TableExpr ::= '{' KeyValue* '}'
+KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','?
+RefExpr ::= Expr '.' (Id | constructor)
 
-SimpleRefExpr ::= IDENTIFIER {elementType=RefExpr}
-RefExpr ::= Expr '.' IDENTIFIER
+SimpleRefExpr ::= Id {elementType=RefExpr}
 LiteralExpr ::= Literal
 
 Literal ::=
-    INT
-  | FLOAT
+    '-'? INT
+  | '-'? FLOAT
   | STRING
   | true | false
   | null
+
+Id ::= '::'? IDENTIFIER

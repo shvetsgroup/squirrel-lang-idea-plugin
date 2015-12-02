@@ -29,55 +29,80 @@ STRING=(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")
 NL=[\r\n]|\r\n
 WS=[ \t\f]
 
-%state MAYBE_SEMICOLON
+%state MAYBE_SEMICOLON, RBRACE_SEMICOLON
 
 %%
 <YYINITIAL> {
   {WS}                 { return TokenType.WHITE_SPACE; }
   {NL}+                { return NLS; }
 
-  "}"                  { yybegin(MAYBE_SEMICOLON); return RBRACE; }
+  "}"                  { yybegin(RBRACE_SEMICOLON); return RBRACE; }
   "]"                  { yybegin(MAYBE_SEMICOLON); return RBRACK; }
-  ")"                  { yybegin(MAYBE_SEMICOLON); return RPAREN; }
-  "++"                 { yybegin(MAYBE_SEMICOLON); return PLUS_PLUS; }
-  "--"                 { yybegin(MAYBE_SEMICOLON); return MINUS_MINUS; }
+  ")"                  { yybegin(MAYBE_SEMICOLON); return RPAREN; } // TODO: Do not add semicolon if it's after keyword braces like for or if.
+  "++"                 { yybegin(MAYBE_SEMICOLON); return INCREMENT; }
+  "--"                 { yybegin(MAYBE_SEMICOLON); return DECREMENT; }
   "{"                  { return LBRACE; }
   "["                  { return LBRACK; }
   "("                  { return LPAREN; }
-  ":"                  { return COLON; }
   "::"                 { return DOUBLE_COLON; }
+  ":"                  { return COLON; }
   ";"                  { return SEMICOLON; }
   ","                  { return COMMA; }
-  "="                  { return ASSIGN; }
-  "<-"                 { return SEND_CHANNEL; }
+  "..."                { return MULTI_ARGS; }
+  "<<"                 { return SHIFT_LEFT; }
+  ">>"                 { return SHIFT_RIGHT; }
+  ">>>"                { return UNSIGNED_SHIFT_RIGHT; }
+  "<=>"                { return CMP; }
   "=="                 { return EQ; }
   "!="                 { return NOT_EQ; }
-  "<=>"                { return CMP; }
-  "!"                  { return NOT; }
+  "<="                 { return LESS_OR_EQUAL; }
+  ">="                 { return GREATER_OR_EQUAL; }
+  "<-"                 { return SEND_CHANNEL; }
+  "+="                 { return PLUS_ASSIGN; }
+  "-="                 { return MINUS_ASSIGN; }
+  "*="                 { return MUL_ASSIGN; }
+  "/="                 { return QUOTIENT_ASSIGN; }
+  "%="                 { return REMAINDER_ASSIGN; }
   "||"                 { return COND_OR; }
   "&&"                 { return COND_AND; }
+  "="                  { return ASSIGN; }
+  "!"                  { return NOT; }
+  "~"                  { return BIT_NOT; }
   "|"                  { return BIT_OR; }
   "^"                  { return BIT_XOR; }
   "&"                  { return BIT_AND; }
   "<"                  { return LESS; }
-  "<="                 { return LESS_OR_EQUAL; }
-  ">="                 { return GREATER_OR_EQUAL; }
   ">"                  { return GREATER; }
-  "<<"                 { return SHIFT_LEFT; }
-  ">>"                 { return SHIFT_RIGHT; }
-  ">>>"                { return UNSIGNED_SHIFT_RIGHT; }
-  "+="                 { return PLUS_ASSIGN; }
   "+"                  { return PLUS; }
-  "-="                 { return MINUS_ASSIGN; }
   "-"                  { return MINUS; }
   "*"                  { return MUL; }
   "/"                  { return QUOTIENT; }
   "%"                  { return REMAINDER; }
+  "?"                  { return QUESTION; }
+  "@"                  { return AT; }
+  "."                  { return PERIOD; }
   "const"              { return CONST; }
+  "enum"               { return ENUM; }
   "local"              { return LOCAL; }
   "function"           { return FUNCTION; }
+  "break"              { return BREAK; }
+  "continue"           { return CONTINUE; }
+  "return"             { return RETURN; }
+  "yield"              { return YIELD; }
+  "for"                { return FOR; }
+  "foreach"            { return FOREACH; }
+  "while"              { return WHILE; }
+  "do"                 { return DO; }
+  "if"                 { return IF; }
+  "else"               { return ELSE; }
+  "try"                { return TRY; }
+  "catch"              { return CATCH; }
   "in"                 { return IN; }
   "typeof"             { return TYPEOF; }
+  "clone"              { return CLONE; }
+  "delete"             { return DELETE; }
+  "resume"             { return RESUME; }
+  "instanceof"         { return INSTANCEOF; }
   "true"               { return TRUE; }
   "false"              { return FALSE; }
   "null"               { return NULL; }
@@ -90,6 +115,11 @@ WS=[ \t\f]
   {STRING}             { yybegin(MAYBE_SEMICOLON); return STRING; }
 
   [^] { return TokenType.BAD_CHARACTER; }
+}
+
+<RBRACE_SEMICOLON> {
+";"                { yybegin(YYINITIAL); yypushback(yytext().length()); }
+.                  { yybegin(YYINITIAL); yypushback(yytext().length()); return SEMICOLON_SYNTHETIC; }
 }
 
 <MAYBE_SEMICOLON> {

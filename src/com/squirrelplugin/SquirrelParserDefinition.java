@@ -34,8 +34,8 @@ public class SquirrelParserDefinition implements ParserDefinition {
     public static final TokenSet STRING_LITERALS = TokenSet.create(STRING); // todo: strings with @
 
 
-    public static final TokenSet KEYWORDS = TokenSet.create(CONST, FUNCTION, LOCAL, IN, TYPEOF, TRUE, FALSE, NULL);
-    public static final TokenSet OPERATORS = TokenSet.create(RBRACE, RBRACK, RPAREN, PLUS_PLUS, MINUS_MINUS,
+    public static final TokenSet KEYWORDS = TokenSet.create(CONST, FUNCTION, LOCAL, IN, TYPEOF, INSTANCEOF, TRUE, FALSE, NULL);
+    public static final TokenSet OPERATORS = TokenSet.create(RBRACE, RBRACK, RPAREN, INCREMENT, DECREMENT,
             LBRACE, LBRACK, LPAREN, COLON, DOUBLE_COLON, SEMICOLON, COMMA, ASSIGN, SEND_CHANNEL, EQ,
             NOT_EQ, CMP, NOT, COND_OR, COND_AND, BIT_OR, BIT_XOR, BIT_AND, LESS, LESS_OR_EQUAL,
             GREATER_OR_EQUAL, GREATER, SHIFT_LEFT, SHIFT_RIGHT, UNSIGNED_SHIFT_RIGHT, PLUS_ASSIGN,
