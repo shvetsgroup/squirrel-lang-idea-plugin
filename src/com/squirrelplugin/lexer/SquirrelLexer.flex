@@ -49,6 +49,8 @@ WS=[ \t\f]
   ";"                  { return SEMICOLON; }
   ","                  { return COMMA; }
   "..."                { return MULTI_ARGS; }
+  "</"                 { return CLASS_ATTR_START; }
+  "/>"                 { return CLASS_ATTR_END; }
   "<<"                 { return SHIFT_LEFT; }
   ">>"                 { return SHIFT_RIGHT; }
   ">>>"                { return UNSIGNED_SHIFT_RIGHT; }
@@ -85,19 +87,27 @@ WS=[ \t\f]
   "enum"               { return ENUM; }
   "local"              { return LOCAL; }
   "function"           { return FUNCTION; }
+  "constructor"        { return CONSTRUCTOR; }
+  "class"              { return CLASS; }
+  "extends"            { return EXTENDS; }
+  "static"             { return STATIC; }
   "break"              { return BREAK; }
   "continue"           { return CONTINUE; }
   "return"             { return RETURN; }
   "yield"              { return YIELD; }
+  "throw"              { return THROW; }
   "for"                { return FOR; }
   "foreach"            { return FOREACH; }
+  "in"                 { return IN; }
   "while"              { return WHILE; }
   "do"                 { return DO; }
   "if"                 { return IF; }
   "else"               { return ELSE; }
+  "switch"             { return SWITCH; }
+  "case"               { return CASE; }
+  "default"            { return DEFAULT; }
   "try"                { return TRY; }
   "catch"              { return CATCH; }
-  "in"                 { return IN; }
   "typeof"             { return TYPEOF; }
   "clone"              { return CLONE; }
   "delete"             { return DELETE; }
