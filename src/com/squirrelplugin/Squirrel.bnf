@@ -1,5 +1,6 @@
 {
   parserClass="com.squirrelplugin.parser.SquirrelParser"
+  parserUtilClass="com.squirrelplugin.parser.SquirrelParserUtil"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
 
@@ -127,13 +128,11 @@
 //    g = "234"
 //}
 
-
-
 SquirrelFile ::= Statements <<eof>>
 
-private semi ::= '<NL>' | ';'
+private semi ::= ('<NL>' | ';')+ {name="semicolon"}
 
-private Statements ::= Statement? semi+ Statements | Statement semi* | semi
+private Statements ::= Statement? semi Statements | Statement <<previousBrace>> Statements | Statement semi? | semi
 
 Statement ::=
     Block
@@ -144,29 +143,28 @@ Statement ::=
     | EnumDeclaration
     | LocalDeclaration
 
-    | Return
-    | Break
-    | Continue
-    | Yield
-    | Throw
+    | ReturnStatement
+    | BreakStatement
+    | ContinueStatement
+    | YieldStatement
+    | ThrowStatement
 
-    | ForLoop
-    | ForEachLoop
-    | WhileLoop
-    | DoWhileLoop
-    | IfConditional
-    | SwitchConditional
-    | TryCatch
+    | ForLoopStatement
+    | ForEachLoopStatement
+    | WhileLoopStatement
+    | DoWhileLoopStatement
+    | IfConditionalStatement
+    | SwitchConditionalStatement
+    | TryCatchStatement  {recoverWhile="statement_recover"}
 
-//private StatementRecover ::= !('}' | '++' | '--' | '{' | '[' | '(' | ';' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
+private statement_recover ::= !('<NL>' | ';')
 
-Block ::= '{' ('}' | Statements '}')
+Block ::= '{' ('}' | Statements '}') {pin=1}
 
-ConstDeclaration ::= const ConstExpression
-ConstExpression ::= Id '=' Literal
+ConstDeclaration ::= const Id '=' Literal {pin=4}
 
 EnumDeclaration ::= enum Id EnumItemDeclarations
-private EnumItemDeclarations ::= '{' EnumItemDeclaration (',' EnumItemDeclaration)* '}' | '{' '}'
+private EnumItemDeclarations ::= '{' ('}' | EnumItemDeclaration (',' EnumItemDeclaration)* '}')
 EnumItemDeclaration ::= Id [ '=' Literal ]
 
 LocalDeclaration ::= local [VarDeclarations | FunctionDeclaration]
@@ -189,29 +187,36 @@ FunctionVariableNumberParameter ::= '...'
 ClassDeclaration ::= class ClassName [extends ClassName] ClassBody
 ClassName ::= Id ('.' Id)*
 private ClassBody ::= '{' ClassMember* '}'
-ClassMember ::= (ConstructorDeclaration | ClassAttribute? static? RegularClassMember) ';'?
+ClassMember ::= (ConstructorDeclaration | ClassAttribute? static? RegularClassMember) semi?
 private RegularClassMember ::= FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma
 ConstructorDeclaration ::= constructor FunctionParametersAndBody
 ClassAttribute ::= '</' KeyValue* '/>'
 
-Break ::= break
-Continue ::= continue
-Return ::= return Expr?
-Yield ::= yield Expr
-Throw ::= throw Expr
+BreakStatement ::= break
+ContinueStatement ::= continue
+ReturnStatement ::= return Expr?
+YieldStatement ::= yield Expr
+ThrowStatement ::= throw Expr
 
-ForLoop ::= for '(' [LocalDeclaration | Expr] ';' Expr? ';' Expr? ')' Statement
-ForEachLoop ::= foreach '(' [Id ','] Id in Expr ')' Statement
-WhileLoop ::= while '(' Expr ')' Statement
-DoWhileLoop ::= do Statement while '(' Expr ')'
-IfConditional ::= if '(' Expr ')' Statement [';'? else Statement]
+ForLoopStatement ::= for ForLoopPartsInBraces Statement
 
-SwitchConditional ::= switch '(' Expr ')' '{' SwitchCase* DefaultCase? '}'
+ForLoopPartsInBraces::= '(' ForLoopParts ')'
+ForLoopParts::= [LocalDeclaration | Expr] ';' Expr? ';' Expr? /*{recoverWhile="for_loops_parts_recover"}*/
+//private for_loops_parts_recover ::= !')'
+
+ForEachLoopStatement ::= foreach '(' [Id ','] Id in Expr ')' Statement
+WhileLoopStatement ::= while '(' ExprWithRecoverUntilParen ')' Statement
+DoWhileLoopStatement ::= do Statement while '(' ExprWithRecoverUntilParen ')'
+IfConditionalStatement ::= if '(' ExprWithRecoverUntilParen ')' Statement [semi? else Statement]
+
+SwitchConditionalStatement ::= switch '(' ExprWithRecoverUntilParen ')' '{' SwitchCase* DefaultCase? '}'
 SwitchCase ::= case Expr ':' Statements*
 DefaultCase::= default ':' Statements*
 
-TryCatch ::= try Statement catch '(' Id ')' Statement
+TryCatchStatement ::= try Statement catch '(' Id ')' Statement
 
+private ExprWithRecoverUntilParen ::= Expr /*{recoverWhile="not_paren_recover"}*/
+//private not_paren_recover ::= !')'
 
 Expr ::=
   CommaExpr
@@ -230,7 +235,7 @@ Expr ::=
   | first_expr_group
   | c_expr_group
   | b_expr_group
-  | a_expr_group
+  | a_expr_group/* {recoverWhile="expression_recover"}*/
 
 private ExprNoComma ::=
   AssignExpr
@@ -248,9 +253,9 @@ private ExprNoComma ::=
   | first_expr_group
   | c_expr_group
   | b_expr_group
-  | a_expr_group
+  | a_expr_group /*{recoverWhile="expression_recover"}*/
 
-//private ExpressionRecover ::= !('<NL>' | '}' | ']' | ')' | '++' | '--' | '{' | '[' | '(' | ':' | '::' | ';' | ',' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
+///private expression_recover ::= !('<NL>' | '}' | ']' | ')' | '++' | '--' | '{' | '[' | '(' | ':' | '::' | ';' | ',' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
 
 private a_expr_group ::= (SimpleRefExpr | LiteralExpr | ParenExpr)
 private b_expr_group ::= (ArrayItemExpr | RefExpr | FunctionCallExpr)
@@ -273,20 +278,25 @@ BitShiftExpr ::= Expr ('<<' | '>>' | '>>>') Expr
 PlusMinusExpr ::= Expr ( '+' | '-') Expr
 MulDivModExpr ::= Expr ('*' | '/' | '%') Expr
 UnaryExpr ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expr
-PostIncrementExpr ::= Id (INCREMENT | DECREMENT)
-PreIncrementExpr ::= (INCREMENT | DECREMENT) Id
+PostIncrementExpr ::= Id ('++' | '--')
+PreIncrementExpr ::= ('++' | '--') Id
 InstanceOfExpr ::= Expr instanceof Expr
 ParenExpr ::= '(' Expr ')'
-ClassExpr ::= class ClassBody
+ClassExpr ::= class [extends ClassName] ClassBody
 FunctionExpr ::= function FunctionParametersAndBody
 LambdaFunctionExpr ::= '@' FunctionParameters ExprNoComma
 FunctionCallExpr ::= Expr FunctionArguments
-FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')'
-FunctionArgument ::= ExprNoComma
-ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'
+FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')' //{recoverWhile="argument_list_recover"}
+//private argument_list_recover ::= !(')')
+FunctionArgument ::= ExprNoComma //{recoverWhile="argument_list_part_recover"}
+// argument_list_part_recover ::= !(')' | ',')
+
+ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'// {recoverWhile="array_list_recover"}
+//private array_list_recover ::= !(']' | ',')
 ArrayItemExpr ::= Expr '[' ExprNoComma ']'
 TableExpr ::= '{' KeyValue* '}'
-KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','?
+KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','? //{recoverWhile="table_list_recover"}
+//private table_list_recover ::= !(')' | ',')
 RefExpr ::= Expr '.' (Id | constructor)
 
 SimpleRefExpr ::= Id {elementType=RefExpr}

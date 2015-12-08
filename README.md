@@ -11,3 +11,8 @@ WORK IN PROGRESS.
 
 1. Run build.sh to build the plugin.
 2. Launch "Plugin" run configuration to test it in IDEA.
+
+
+# Known issues
+
+1. Class constructor should always have braces around its body.
