@@ -155,13 +155,11 @@ Statement ::=
     | DoWhileLoopStatement
     | IfConditionalStatement
     | SwitchConditionalStatement
-    | TryCatchStatement  {recoverWhile="statement_recover"}
+    | TryCatchStatement
 
-private statement_recover ::= !('<NL>' | ';')
+Block ::= '{' ('}' | Statements '}')
 
-Block ::= '{' ('}' | Statements '}') {pin=1}
-
-ConstDeclaration ::= const Id '=' Literal {pin=4}
+ConstDeclaration ::= const Id '=' Literal
 
 EnumDeclaration ::= enum Id EnumItemDeclarations
 private EnumItemDeclarations ::= '{' ('}' | EnumItemDeclaration (',' EnumItemDeclaration)* '}')
@@ -201,8 +199,7 @@ ThrowStatement ::= throw Expr
 ForLoopStatement ::= for ForLoopPartsInBraces Statement
 
 ForLoopPartsInBraces::= '(' ForLoopParts ')'
-ForLoopParts::= [LocalDeclaration | Expr] ';' Expr? ';' Expr? /*{recoverWhile="for_loops_parts_recover"}*/
-//private for_loops_parts_recover ::= !')'
+ForLoopParts::= [LocalDeclaration | Expr] ';' Expr? ';' Expr?
 
 ForEachLoopStatement ::= foreach '(' [Id ','] Id in Expr ')' Statement
 WhileLoopStatement ::= while '(' ExprWithRecoverUntilParen ')' Statement
@@ -215,8 +212,7 @@ DefaultCase::= default ':' Statements*
 
 TryCatchStatement ::= try Statement catch '(' Id ')' Statement
 
-private ExprWithRecoverUntilParen ::= Expr /*{recoverWhile="not_paren_recover"}*/
-//private not_paren_recover ::= !')'
+private ExprWithRecoverUntilParen ::= Expr
 
 Expr ::=
   CommaExpr
@@ -235,7 +231,7 @@ Expr ::=
   | first_expr_group
   | c_expr_group
   | b_expr_group
-  | a_expr_group/* {recoverWhile="expression_recover"}*/
+  | a_expr_group
 
 private ExprNoComma ::=
   AssignExpr
@@ -253,9 +249,7 @@ private ExprNoComma ::=
   | first_expr_group
   | c_expr_group
   | b_expr_group
-  | a_expr_group /*{recoverWhile="expression_recover"}*/
-
-///private expression_recover ::= !('<NL>' | '}' | ']' | ')' | '++' | '--' | '{' | '[' | '(' | ':' | '::' | ';' | ',' | '=' | '<-' | '==' | '!=' | '<=>' | '!' | '~' | '||' | '&&' | '|' | '^' | '&' | '<' | '<=' | '>=' | '>' | '<<' | '>>' | '>>>' | '+=' | '+' | '-=' | '-' | '*' | '*=' | '/' | '/=' | '%' | '%=' |  '?')
+  | a_expr_group
 
 private a_expr_group ::= (SimpleRefExpr | LiteralExpr | ParenExpr)
 private b_expr_group ::= (ArrayItemExpr | RefExpr | FunctionCallExpr)
@@ -286,17 +280,13 @@ ClassExpr ::= class [extends ClassName] ClassBody
 FunctionExpr ::= function FunctionParametersAndBody
 LambdaFunctionExpr ::= '@' FunctionParameters ExprNoComma
 FunctionCallExpr ::= Expr FunctionArguments
-FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')' //{recoverWhile="argument_list_recover"}
-//private argument_list_recover ::= !(')')
-FunctionArgument ::= ExprNoComma //{recoverWhile="argument_list_part_recover"}
-// argument_list_part_recover ::= !(')' | ',')
+FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')'
+FunctionArgument ::= ExprNoComma
 
-ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'// {recoverWhile="array_list_recover"}
-//private array_list_recover ::= !(']' | ',')
+ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'
 ArrayItemExpr ::= Expr '[' ExprNoComma ']'
 TableExpr ::= '{' KeyValue* '}'
-KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','? //{recoverWhile="table_list_recover"}
-//private table_list_recover ::= !(')' | ',')
+KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','?
 RefExpr ::= Expr '.' (Id | constructor)
 
 SimpleRefExpr ::= Id {elementType=RefExpr}
