@@ -78,7 +78,8 @@
     NL="regexp:[\r\n]|\r\n"
     WS="regexp:[ \t\f]"
   ]
-
+  implements("(ClassDeclarationStatement|ClassExpression)")="com.squirrelplugin.psi.SquirrelClass"
+  implements("(FunctionDeclarationStatement|FunctionExpression)")="com.squirrelplugin.psi.SquirrelFunction"
   extends(".*Expression")=Expression
   extends(".*Statement")=Statement
   name(".*Expression")="expression"
@@ -185,7 +186,8 @@ VarDeclaration ::= Id [ '=' ExpressionWithNoComma ]
 FunctionDeclarationStatement ::= FunctionDeclaration
 private FunctionDeclaration ::= function FunctionName FunctionParametersAndBody  {pin=1}
 FunctionName ::= Id ('::' (Id | constructor))*
-private FunctionParametersAndBody ::= FunctionParameters StatementOrEmpty
+private FunctionParametersAndBody ::= FunctionParameters FunctionBody
+FunctionBody ::= StatementOrEmpty
 
 FunctionParameters ::=
 '(' FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))? ')'
@@ -198,7 +200,7 @@ FunctionVariableNumberParameter ::= '...'
 
 ClassDeclarationStatement ::= class ClassName [extends ClassName] ClassBody {pin=1}
 ClassName ::= Id ('.' Id)*
-private ClassBody ::= '{' ClassMembers? '}'
+ClassBody ::= '{' ClassMembers? '}'
 private ClassMembers ::= ClassMember (semi* ClassMember)* semi?
 ClassMember ::= ClassAttribute? static? (ConstructorDeclaration | RegularClassMember)
 private RegularClassMember ::= KeyValuePair | FunctionDeclaration

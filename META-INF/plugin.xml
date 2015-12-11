@@ -26,6 +26,7 @@
         <fileTypeFactory implementation="com.squirrelplugin.SquirrelFileTypeFactory"/>
         <lang.parserDefinition language="Squirrel" implementationClass="com.squirrelplugin.SquirrelParserDefinition"/>
         <lang.syntaxHighlighterFactory key="Squirrel" implementationClass="com.squirrelplugin.highlighting.SquirrelSyntaxHighlighterFactory"/>
+        <lang.foldingBuilder language="Squirrel" implementationClass="com.squirrelplugin.folding.SquirrelFoldingBuilder"/>
     </extensions>
 
     <application-components>
