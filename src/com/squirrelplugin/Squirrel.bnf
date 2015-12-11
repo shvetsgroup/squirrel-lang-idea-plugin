@@ -270,7 +270,7 @@ private ExpressionWithNoComma ::=
 private a_expr_group ::= (SimpleRefExpression | LiteralExpression | ParenExpression)
 private b_expr_group ::= (ArrayItemExpression | RefExpression | FunctionCallExpression)
 private c_expr_group ::= (ClassExpression | TableExpression | ArrayExpression | FunctionExpression | LambdaFunctionExpression )
-private first_expr_group ::= (UnaryExpression | PostIncrementExpression | PreIncrementExpression | InstanceOfExpression )
+private first_expr_group ::= (UnaryExpression | PreIncrementExpression | InstanceOfExpression )
 private second_expr_group ::= (AndExpression | InExpression)
 
 CommaExpression ::= Expression ',' Expression
@@ -288,8 +288,7 @@ BitShiftExpression ::= Expression ('<<' | '>>' | '>>>') Expression
 PlusMinusExpression ::= Expression ( '+' | '-') Expression
 MulDivModExpression ::= Expression ('*' | '/' | '%') Expression
 UnaryExpression ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expression
-PostIncrementExpression ::= Id ('++' | '--')
-PreIncrementExpression ::= ('++' | '--') Id
+PreIncrementExpression ::= ('++' | '--') NamedElementExpression
 InstanceOfExpression ::= Expression instanceof Expression
 ParenExpression ::= '(' Expression ')'
 ClassExpression ::= class [extends ClassName] ClassBody
@@ -302,7 +301,7 @@ FunctionArgument ::= ExpressionWithNoComma
 ArrayExpression ::= '[' ArrayElements?  ']'
 private ArrayElements ::= ExpressionWithNoComma (',' ExpressionWithNoComma)* ','?
 
-ArrayItemExpression ::= Expression '[' ExpressionWithNoComma ']'
+ArrayItemExpression ::= Expression '[' ExpressionWithNoComma ']' ['++' | '--']
 
 TableExpression ::= '{' KeyValuePairs? '}'
 private TableItemSeparator ::= ',' | '<NL>'
@@ -311,9 +310,10 @@ TableItem ::= KeyValuePair | FunctionDeclaration
 private KeyValuePair ::= Key '=' ExpressionWithNoComma
 Key ::= Id | '[' Expression ']'
 
+private NamedElementExpression ::= SimpleRefExpression | RefExpression | ArrayItemExpression
 RefExpression ::= Expression '.' (Id | constructor)
 
-SimpleRefExpression ::= Id {elementType=RefExpression}
+SimpleRefExpression ::= Id ['++' | '--'] {elementType=RefExpression}
 LiteralExpression ::= Literal
 
 Literal ::=
