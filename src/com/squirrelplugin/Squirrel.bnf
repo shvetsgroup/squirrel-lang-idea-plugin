@@ -138,7 +138,7 @@ private semi ::= '<NL>' | ';' {name="semicolon"}
 private multisemi ::= semi+ {name="semicolon"}
 private delimiter ::= multisemi | &'}' | <<eof>> | <<previousBrace>>
 
-private Statements ::= StatementWithSemi*
+private Statements ::= multisemi? StatementWithSemi*
 
 private StatementWithSemi ::= Statement delimiter { pin=1 recoverWhile=statement_recover }
 
