@@ -73,11 +73,15 @@
     FLOAT = "regexp:((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))"
     STRING = "regexp:(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")"
 
+    NL="NL"
+    WS="WS"
     NL="regexp:[\r\n]|\r\n"
     WS="regexp:[ \t\f]"
   ]
 
-  extends(".*Expr")=Expr
+  extends(".*Expression")=Expression
+  extends(".*Statement")=Statement
+  name(".*Expression")="expression"
 }
 
 // ---------
@@ -128,20 +132,26 @@
 //    g = "234"
 //}
 
-SquirrelFile ::= Statements <<eof>>
+SquirrelFile ::= !<<eof>> Statements
 
-private semi ::= ('<NL>' | ';')+ {name="semicolon"}
+private semi ::= '<NL>' | ';' {name="semicolon"}
+private multisemi ::= semi+ {name="semicolon"}
+private delimiter ::= multisemi | &'}' | <<eof>> | <<previousBrace>>
 
-private Statements ::= Statement? semi Statements | Statement <<previousBrace>> Statements | Statement semi? | semi
+private Statements ::= StatementWithSemi*
+
+private StatementWithSemi ::= Statement delimiter { pin=1 recoverWhile=statement_recover }
+
+private statement_recover ::= !(<<eof>> | delimiter | '{' | '}' | const | enum | local | function | class | return | break | continue | yield | throw | for | foreach | while | do | if | else | switch | case | default | try | catch)
 
 Statement ::=
     Block
-    | Expr
-    | FunctionDeclaration
-    | ClassDeclaration
-    | ConstDeclaration
-    | EnumDeclaration
-    | LocalDeclaration
+    | Expression
+    | ConstDeclarationStatement
+    | EnumDeclarationStatement
+    | LocalDeclarationStatement
+    | FunctionDeclarationStatement
+    | ClassDeclarationStatement
 
     | ReturnStatement
     | BreakStatement
@@ -157,21 +167,25 @@ Statement ::=
     | SwitchConditionalStatement
     | TryCatchStatement
 
-Block ::= '{' ('}' | Statements '}')
+private StatementOrEmpty ::= Statement | ';'
 
-ConstDeclaration ::= const Id '=' Literal
+Block ::= '{' Statements? '}' {pin=1}
 
-EnumDeclaration ::= enum Id EnumItemDeclarations
-private EnumItemDeclarations ::= '{' ('}' | EnumItemDeclaration (',' EnumItemDeclaration)* '}')
+ConstDeclarationStatement ::= const Id '=' Literal {pin=1}
+
+EnumDeclarationStatement ::= enum Id '{' EnumItemDeclarations? '}' {pin=1}
+private EnumItemDeclarations ::= EnumItemDeclaration (',' EnumItemDeclaration)* ','?
 EnumItemDeclaration ::= Id [ '=' Literal ]
 
-LocalDeclaration ::= local [VarDeclarations | FunctionDeclaration]
-private VarDeclarations ::= VarDeclaration ',' VarDeclarations | VarDeclaration
-VarDeclaration ::= Id [ '=' ExprNoComma ]
+LocalDeclarationStatement ::= local VariableOrFunctionDeclarations {pin=1}
+private VariableOrFunctionDeclarations ::= VarDeclarations | FunctionDeclaration { name="variable or function declarations" }
+private VarDeclarations ::= VarDeclaration (',' VarDeclaration)*
+VarDeclaration ::= Id [ '=' ExpressionWithNoComma ]
 
-FunctionDeclaration ::= function FunctionName FunctionParametersAndBody
+FunctionDeclarationStatement ::= FunctionDeclaration
+private FunctionDeclaration ::= function FunctionName FunctionParametersAndBody  {pin=1}
 FunctionName ::= Id ('::' (Id | constructor))*
-private FunctionParametersAndBody ::= FunctionParameters Statement
+private FunctionParametersAndBody ::= FunctionParameters StatementOrEmpty
 
 FunctionParameters ::=
 '(' FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))? ')'
@@ -179,118 +193,128 @@ FunctionParameters ::=
 | '(' FunctionVariableNumberParameter? ')'
 
 FunctionParameter ::= Id (!'=')
-FunctionDefaultParameter ::= Id '=' ExprNoComma
+FunctionDefaultParameter ::= Id '=' ExpressionWithNoComma
 FunctionVariableNumberParameter ::= '...'
 
-ClassDeclaration ::= class ClassName [extends ClassName] ClassBody
+ClassDeclarationStatement ::= class ClassName [extends ClassName] ClassBody {pin=1}
 ClassName ::= Id ('.' Id)*
-private ClassBody ::= '{' ClassMember* '}'
-ClassMember ::= (ConstructorDeclaration | ClassAttribute? static? RegularClassMember) semi?
-private RegularClassMember ::= FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma
+private ClassBody ::= '{' ClassMembers? '}'
+private ClassMembers ::= ClassMember (semi* ClassMember)* semi?
+ClassMember ::= ClassAttribute? static? (ConstructorDeclaration | RegularClassMember)
+private RegularClassMember ::= KeyValuePair | FunctionDeclaration
 ConstructorDeclaration ::= constructor FunctionParametersAndBody
-ClassAttribute ::= '</' KeyValue* '/>'
+ClassAttribute ::= '</' KeyValuePairs? '/>'
 
+ReturnStatement ::= return Expression? {pin=1}
 BreakStatement ::= break
 ContinueStatement ::= continue
-ReturnStatement ::= return Expr?
-YieldStatement ::= yield Expr
-ThrowStatement ::= throw Expr
+YieldStatement ::= yield Expression {pin=1}
+ThrowStatement ::= throw Expression {pin=1}
 
-ForLoopStatement ::= for ForLoopPartsInBraces Statement
+ForLoopStatement ::= for ForLoopPartsInBraces StatementOrEmpty {pin=1}
 
 ForLoopPartsInBraces::= '(' ForLoopParts ')'
-ForLoopParts::= [LocalDeclaration | Expr] ';' Expr? ';' Expr?
+ForLoopParts::= [LocalDeclarationStatement | Expression] ';' Expression? ';' Expression?
 
-ForEachLoopStatement ::= foreach '(' [Id ','] Id in Expr ')' Statement
-WhileLoopStatement ::= while '(' ExprWithRecoverUntilParen ')' Statement
-DoWhileLoopStatement ::= do Statement while '(' ExprWithRecoverUntilParen ')'
-IfConditionalStatement ::= if '(' ExprWithRecoverUntilParen ')' Statement [semi? else Statement]
+ForEachLoopStatement ::= foreach '(' [Id ','] Id in Expression ')' StatementOrEmpty {pin=1}
+WhileLoopStatement ::= while '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty {pin=1}
+DoWhileLoopStatement ::= do StatementOrEmpty while '(' ExpressionWithRecoverUntilParen ')' {pin=1}
+IfConditionalStatement ::= if '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty [semi? else StatementOrEmpty] {pin=1}
 
-SwitchConditionalStatement ::= switch '(' ExprWithRecoverUntilParen ')' '{' SwitchCase* DefaultCase? '}'
-SwitchCase ::= case Expr ':' Statements*
-DefaultCase::= default ':' Statements*
+SwitchConditionalStatement ::= switch '(' ExpressionWithRecoverUntilParen ')' '{' SwitchCase* DefaultCase? '}' {pin=1}
+SwitchCase ::= case Expression ':' Statements? {pin=1}
+DefaultCase::= default ':' Statements? {pin=2}
 
-TryCatchStatement ::= try Statement catch '(' Id ')' Statement
+TryCatchStatement ::= try StatementOrEmpty catch '(' Id ')' StatementOrEmpty {pin=1}
 
-private ExprWithRecoverUntilParen ::= Expr
+private ExpressionWithRecoverUntilParen ::= Expression {recoverWhile=parenthesesRecovery}
+private parenthesesRecovery ::= !')'
 
-Expr ::=
-  CommaExpr
-  | AssignExpr
-  | ElvisExpr
-  | OrExpr
+Expression ::=
+  CommaExpression
+  | AssignExpression
+  | ElvisExpression
+  | OrExpression
   | second_expr_group
-  | BitOrExpr
-  | BitXorExpr
-  | BitAndExpr
-  | CompareExpr
-  | LessGreaterEqualExpr
-  | BitShiftExpr
-  | PlusMinusExpr
-  | MulDivModExpr
+  | BitOrExpression
+  | BitXorExpression
+  | BitAndExpression
+  | CompareExpression
+  | LessGreaterEqualExpression
+  | BitShiftExpression
+  | PlusMinusExpression
+  | MulDivModExpression
   | first_expr_group
   | c_expr_group
   | b_expr_group
   | a_expr_group
 
-private ExprNoComma ::=
-  AssignExpr
-  | ElvisExpr
-  | OrExpr
+private ExpressionWithNoComma ::=
+  AssignExpression
+  | ElvisExpression
+  | OrExpression
   | second_expr_group
-  | BitOrExpr
-  | BitXorExpr
-  | BitAndExpr
-  | CompareExpr
-  | LessGreaterEqualExpr
-  | BitShiftExpr
-  | PlusMinusExpr
-  | MulDivModExpr
+  | BitOrExpression
+  | BitXorExpression
+  | BitAndExpression
+  | CompareExpression
+  | LessGreaterEqualExpression
+  | BitShiftExpression
+  | PlusMinusExpression
+  | MulDivModExpression
   | first_expr_group
   | c_expr_group
   | b_expr_group
-  | a_expr_group
+  | a_expr_group {name="expression"}
 
-private a_expr_group ::= (SimpleRefExpr | LiteralExpr | ParenExpr)
-private b_expr_group ::= (ArrayItemExpr | RefExpr | FunctionCallExpr)
-private c_expr_group ::= (ClassExpr | TableExpr | ArrayExpr | FunctionExpr | LambdaFunctionExpr )
-private first_expr_group ::= (UnaryExpr | PostIncrementExpr | PreIncrementExpr | InstanceOfExpr )
-private second_expr_group ::= (AndExpr | InExpr)
+private a_expr_group ::= (SimpleRefExpression | LiteralExpression | ParenExpression)
+private b_expr_group ::= (ArrayItemExpression | RefExpression | FunctionCallExpression)
+private c_expr_group ::= (ClassExpression | TableExpression | ArrayExpression | FunctionExpression | LambdaFunctionExpression )
+private first_expr_group ::= (UnaryExpression | PostIncrementExpression | PreIncrementExpression | InstanceOfExpression )
+private second_expr_group ::= (AndExpression | InExpression)
 
-CommaExpr ::= Expr ',' Expr
-AssignExpr ::= Expr ('=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-=' ) Expr { rightAssociative=true }
-ElvisExpr ::= Expr '?' Expr ':' Expr
-OrExpr ::= Expr '||' Expr
-AndExpr ::= Expr '&&' Expr
-InExpr ::= Expr in Expr
-BitOrExpr ::= Expr '|' Expr
-BitXorExpr ::= Expr '^' Expr
-BitAndExpr ::= Expr '&' Expr
-CompareExpr ::= Expr ('==' | '!=' | '<=>' ) Expr
-LessGreaterEqualExpr ::= Expr ('<' | '<=' | '>' | '>=' ) Expr
-BitShiftExpr ::= Expr ('<<' | '>>' | '>>>') Expr
-PlusMinusExpr ::= Expr ( '+' | '-') Expr
-MulDivModExpr ::= Expr ('*' | '/' | '%') Expr
-UnaryExpr ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expr
-PostIncrementExpr ::= Id ('++' | '--')
-PreIncrementExpr ::= ('++' | '--') Id
-InstanceOfExpr ::= Expr instanceof Expr
-ParenExpr ::= '(' Expr ')'
-ClassExpr ::= class [extends ClassName] ClassBody
-FunctionExpr ::= function FunctionParametersAndBody
-LambdaFunctionExpr ::= '@' FunctionParameters ExprNoComma
-FunctionCallExpr ::= Expr FunctionArguments
+CommaExpression ::= Expression ',' Expression
+AssignExpression ::= Expression ('=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-=' ) Expression { rightAssociative=true }
+ElvisExpression ::= Expression '?' Expression ':' Expression
+OrExpression ::= Expression '||' Expression
+AndExpression ::= Expression '&&' Expression
+InExpression ::= Expression in Expression
+BitOrExpression ::= Expression '|' Expression
+BitXorExpression ::= Expression '^' Expression
+BitAndExpression ::= Expression '&' Expression
+CompareExpression ::= Expression ('==' | '!=' | '<=>' ) Expression
+LessGreaterEqualExpression ::= Expression ('<' | '<=' | '>' | '>=' ) Expression
+BitShiftExpression ::= Expression ('<<' | '>>' | '>>>') Expression
+PlusMinusExpression ::= Expression ( '+' | '-') Expression
+MulDivModExpression ::= Expression ('*' | '/' | '%') Expression
+UnaryExpression ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expression
+PostIncrementExpression ::= Id ('++' | '--')
+PreIncrementExpression ::= ('++' | '--') Id
+InstanceOfExpression ::= Expression instanceof Expression
+ParenExpression ::= '(' Expression ')'
+ClassExpression ::= class [extends ClassName] ClassBody
+FunctionExpression ::= function FunctionParametersAndBody
+LambdaFunctionExpression ::= '@' FunctionParameters ExpressionWithNoComma
+FunctionCallExpression ::= Expression FunctionArguments
 FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')'
-FunctionArgument ::= ExprNoComma
+FunctionArgument ::= ExpressionWithNoComma
 
-ArrayExpr ::= '[' ']' | '[' ExprNoComma (',' ExprNoComma)* ']'
-ArrayItemExpr ::= Expr '[' ExprNoComma ']'
-TableExpr ::= '{' KeyValue* '}'
-KeyValue ::= (FunctionDeclaration | Id '=' ExprNoComma | '[' Expr ']' '=' ExprNoComma) ','?
-RefExpr ::= Expr '.' (Id | constructor)
+ArrayExpression ::= '[' ArrayElements?  ']'
+private ArrayElements ::= ExpressionWithNoComma (',' ExpressionWithNoComma)* ','?
 
-SimpleRefExpr ::= Id {elementType=RefExpr}
-LiteralExpr ::= Literal
+ArrayItemExpression ::= Expression '[' ExpressionWithNoComma ']'
+
+TableExpression ::= '{' KeyValuePairs? '}'
+private TableItemSeparator ::= ',' | '<NL>'
+private KeyValuePairs ::= TableItem (TableItemSeparator* TableItem)* TableItemSeparator?
+TableItem ::= KeyValuePair | FunctionDeclaration
+private KeyValuePair ::= Key '=' ExpressionWithNoComma
+Key ::= Id | '[' Expression ']'
+
+RefExpression ::= Expression '.' (Id | constructor)
+
+SimpleRefExpression ::= Id {elementType=RefExpression}
+LiteralExpression ::= Literal
 
 Literal ::=
     '-'? INT
@@ -299,4 +323,4 @@ Literal ::=
   | true | false
   | null
 
-Id ::= '::'? IDENTIFIER
+Id ::= '::'? IDENTIFIER { name="identifier" }

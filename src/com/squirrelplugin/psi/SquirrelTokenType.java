@@ -12,6 +12,6 @@ public class SquirrelTokenType extends IElementType {
 
     @Override
     public String toString() {
-        return "SquirrelTokenType." + super.toString();
+        return super.toString();
     }
 }

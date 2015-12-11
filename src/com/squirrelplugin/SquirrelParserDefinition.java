@@ -24,9 +24,7 @@ import static com.squirrelplugin.psi.SquirrelTypes.*;
 
 public class SquirrelParserDefinition implements ParserDefinition {
 
-    public static final IElementType WS = new SquirrelTokenType("WS");
-    public static final IElementType NLS = new SquirrelTokenType("NL");
-    public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE, WS, NLS);
+    public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE, WS, NL);
 
     public static final TokenSet COMMENTS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT);
 

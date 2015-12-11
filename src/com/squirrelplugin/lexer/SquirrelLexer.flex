@@ -68,8 +68,8 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
 %%
 <YYINITIAL, STATEMENT_WITH_PARENTHESES, DO_STATEMENT, LBRACE_START> {
-  {WS}                 { return TokenType.WHITE_SPACE; }
-  {NL}+                { return NLS; }
+  {WS}+                { return WS; }
+  {NL}+                { return NL; }
 
   "}"                  { popState(); return RBRACE; }
   "]"                  { pushState(MAYBE_NL_EXPRESSION); return RBRACK; }
@@ -191,7 +191,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
 
 <MAYBE_NL_TERMINAL_KEYWORD> {
-{WS}               { return TokenType.WHITE_SPACE; }
+{WS}+              { return WS; }
 {NL}+              { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
 {BLOCK_COMMENT}    { return BLOCK_COMMENT; }
@@ -200,8 +200,8 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 }
 
 <MAYBE_NL_EXPRESSION> {
-{WS}               { return TokenType.WHITE_SPACE; }
-{NL}+              { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NLS; }
+{WS}+              { return WS; }
+{NL}+              { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NL; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
 {BLOCK_COMMENT}    { return BLOCK_COMMENT; }
 
@@ -209,8 +209,8 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 }
 //
 <MAYBE_NL_EXPRESSION_CONFIRM> {
-{WS}               { return TokenType.WHITE_SPACE; }
-{NL}+              { return NLS; }
+{WS}+              { return WS; }
+{NL}+              { return NL; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
 {BLOCK_COMMENT}    { return BLOCK_COMMENT; }
 

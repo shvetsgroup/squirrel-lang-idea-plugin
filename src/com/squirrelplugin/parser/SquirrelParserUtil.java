@@ -33,6 +33,8 @@ import gnu.trove.TObjectIntHashMap;
 import gnu.trove.TObjectIntProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.psi.TokenType;
+import static com.squirrelplugin.psi.SquirrelTypes.*;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -40,16 +42,14 @@ import java.util.List;
 public class SquirrelParserUtil extends GeneratedParserUtilBase {
 
     public static boolean previousBrace(@NotNull PsiBuilder builder_, @SuppressWarnings("UnusedParameters") int level) {
-        LighterASTNode marker = builder_.getLatestDoneMarker();
+        IElementType type = null;
+        for (int i = 1; i < builder_.getCurrentOffset(); i++) {
+            type = builder_.rawLookup(-i);
+            if (type != WS && type != NL && type != LINE_COMMENT && type != BLOCK_COMMENT) {
+                break;
+            }
+        }
 
-        if (marker == null) return false;
-
-        String str = marker.toString().replaceAll("\\s+$", "");
-
-        if (str.length() == 0) return false;
-
-        str = "" + str.charAt(str.length() - 1);
-
-        return str.equals("}");
+        return type != null && (type == RBRACE || type == SEMICOLON || type == SEMICOLON_SYNTHETIC);
     }
 }
