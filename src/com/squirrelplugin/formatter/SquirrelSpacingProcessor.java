@@ -186,9 +186,9 @@ public class SquirrelSpacingProcessor {
             return Spacing.createSpacing(0, 0, 1, false, 0);
         }
 
-        if (type1 == STATEMENT || type2 == STATEMENT) {
-            return addLineBreak();
-        }
+//        if (type1 == STATEMENT || type2 == STATEMENT) {
+//            return addLineBreak();
+//        }
         if (type1 == CLASS_MEMBERS || type2 == CLASS_MEMBERS) {
             if (type1 == MULTI_LINE_COMMENT) {
                 return addSingleSpaceIf(true, false);

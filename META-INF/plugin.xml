@@ -28,6 +28,8 @@
         <lang.syntaxHighlighterFactory language="Squirrel" implementationClass="com.squirrelplugin.highlighting.SquirrelSyntaxHighlighterFactory"/>
         <lang.foldingBuilder language="Squirrel" implementationClass="com.squirrelplugin.folding.SquirrelFoldingBuilder"/>
         <lang.formatter language="Squirrel" implementationClass="com.squirrelplugin.formatter.SquirrelFormattingModelBuilder"/>
+        <codeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
     </extensions>
 
     <application-components>

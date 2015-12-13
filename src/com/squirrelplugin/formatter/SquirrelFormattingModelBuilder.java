@@ -19,7 +19,6 @@ public class SquirrelFormattingModelBuilder implements FormattingModelBuilder {
     @NotNull
     @Override
     public FormattingModel createModel(@NotNull final PsiElement element, @NotNull final CodeStyleSettings settings) {
-        // element can be SquirrelFile, SquirrelEmbeddedContent, SquirrelExpressionCodeFragment
         final PsiFile psiFile = element.getContainingFile();
         final ASTNode rootNode = psiFile instanceof SquirrelFile ? psiFile.getNode() : element.getNode();
         final SquirrelBlock rootBlock = new SquirrelBlock(rootNode, null, null, settings);
