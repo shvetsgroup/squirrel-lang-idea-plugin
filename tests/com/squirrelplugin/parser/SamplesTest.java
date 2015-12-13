@@ -5,7 +5,7 @@ import com.squirrelplugin.SquirrelParserDefinition;
 
 public class SamplesTest extends ParsingTestCase {
     public SamplesTest() {
-        super("parser/samples", "nut", new SquirrelParserDefinition());
+        super("parser/samples", "nut", true, new SquirrelParserDefinition());
     }
 
     public void testAckermann() {

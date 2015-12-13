@@ -1,5 +1,5 @@
 {
-  parserClass="com.squirrelplugin.parser.SquirrelParser"
+  parserClass="com.squirrelplugin.SquirrelParser"
   parserUtilClass="com.squirrelplugin.parser.SquirrelParserUtil"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
@@ -9,7 +9,7 @@
   psiPackage="com.squirrelplugin.psi"
   psiImplPackage="com.squirrelplugin.psi.impl"
 
-  elementTypeHolderClass="com.squirrelplugin.psi.SquirrelTypes"
+  elementTypeHolderClass="com.squirrelplugin.SquirrelTokenTypes"
   elementTypeClass="com.squirrelplugin.psi.SquirrelElementType"
   tokenTypeClass="com.squirrelplugin.psi.SquirrelTokenType"
 
@@ -17,13 +17,13 @@
     SEMICOLON_SYNTHETIC  =  '<NL>'
 
     RBRACE               =  '}'
-    RBRACK               =  ']'
+    RBRACKET               =  ']'
     RPAREN               =  ')'
-    INCREMENT            =  '++'
-    DECREMENT            =  '--'
+    PLUS_PLUS            =  '++'
+    MINUS_MINUS          =  '--'
 
     LBRACE               =  '{'
-    LBRACK               =  '['
+    LBRACKET               =  '['
     LPAREN               =  '('
     DOUBLE_COLON         =  '::'
     COLON                =  ':'
@@ -36,19 +36,19 @@
     SHIFT_RIGHT          =  '>>'
     UNSIGNED_SHIFT_RIGHT =  '>>>'
     CMP                  =  '<=>'
-    EQ                   =  '=='
+    EQ_EQ                =  '=='
     NOT_EQ               =  '!='
-    LESS_OR_EQUAL        =  '<='
-    GREATER_OR_EQUAL     =  '>='
+    LESS_OR_EQ           =  '<='
+    GREATER_OR_EQ        =  '>='
     SEND_CHANNEL         =  '<-'
-    PLUS_ASSIGN          =  '+='
-    MINUS_ASSIGN         =  '-='
-    MUL_ASSIGN           =  '*='
-    QUOTIENT_ASSIGN      =  '/='
-    REMAINDER_ASSIGN     =  '%='
-    COND_OR              =  '||'
-    COND_AND             =  '&&'
-    ASSIGN               =  '='
+    PLUS_EQ              =  '+='
+    MINUS_EQ             =  '-='
+    MUL_EQ               =  '*='
+    DIV_EQ               =  '/='
+    REMAINDER_EQ         =  '%='
+    OR_OR                =  '||'
+    AND_AND              =  '&&'
+    EQ                   =  '='
     NOT                  =  '!'
     BIT_NOT              =  '~'
     BIT_OR               =  '|'
@@ -59,14 +59,14 @@
     PLUS                 =  '+'
     MINUS                =  '-'
     MUL                  =  '*'
-    QUOTIENT             =  '/'
+    DIV                  =  '/'
     REMAINDER            =  '%'
     QUESTION             =  '?'
     AT                   =  '@'
-    PERIOD               =  '.'
+    DOT                  =  '.'
 
     LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
-    BLOCK_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
+    MULTI_LINE_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
 
     IDENTIFIER = "regexp:[a-zA-Z_]+[a-zA-Z_0-9]*"
     INT = "regexp:((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('\p{Alpha}')|(0|([1-9][0-9]*)))"
@@ -78,10 +78,10 @@
     NL="regexp:[\r\n]|\r\n"
     WS="regexp:[ \t\f]"
   ]
-  implements("(ClassDeclarationStatement|ClassExpression)")="com.squirrelplugin.psi.SquirrelClass"
-  implements("(FunctionDeclarationStatement|FunctionExpression)")="com.squirrelplugin.psi.SquirrelFunction"
+  implements("(ClassDeclaration|ClassExpression)")="com.squirrelplugin.psi.SquirrelClass"
+  implements("(FunctionDeclaration|ConstructorDeclaration|MethodDeclaration|FunctionExpression)")="com.squirrelplugin.psi.SquirrelFunction"
   extends(".*Expression")=Expression
-  extends(".*Statement")=Statement
+  extends(".*(Statement|Declaration)")=Statement
   name(".*Expression")="expression"
 }
 
@@ -137,7 +137,7 @@ SquirrelFile ::= !<<eof>> Statements
 
 private semi ::= '<NL>' | ';' {name="semicolon"}
 private multisemi ::= semi+ {name="semicolon"}
-private delimiter ::= multisemi | &'}' | <<eof>> | <<previousBrace>>
+private delimiter ::= multisemi | &'}' | <<eof>> | <<prevIsBrace>>
 
 private Statements ::= multisemi? StatementWithSemi*
 
@@ -148,11 +148,19 @@ private statement_recover ::= !(<<eof>> | delimiter | '{' | '}' | const | enum |
 Statement ::=
     Block
     | Expression
-    | ConstDeclarationStatement
-    | EnumDeclarationStatement
-    | LocalDeclarationStatement
-    | FunctionDeclarationStatement
-    | ClassDeclarationStatement
+    | ConstDeclaration
+    | EnumDeclaration
+    | LocalDeclaration
+    | FunctionDeclaration
+    | ClassDeclaration
+
+    | ForStatement
+    | ForeachStatement
+    | WhileStatement
+    | DoWhileStatement
+    | IfStatement
+    | SwitchStatement
+    | TryStatement
 
     | ReturnStatement
     | BreakStatement
@@ -160,51 +168,44 @@ Statement ::=
     | YieldStatement
     | ThrowStatement
 
-    | ForLoopStatement
-    | ForEachLoopStatement
-    | WhileLoopStatement
-    | DoWhileLoopStatement
-    | IfConditionalStatement
-    | SwitchConditionalStatement
-    | TryCatchStatement
-
 private StatementOrEmpty ::= Statement | ';'
 
 Block ::= '{' Statements? '}' {pin=1}
 
-ConstDeclarationStatement ::= const Id '=' Literal {pin=1}
+ConstDeclaration ::= const Id '=' Literal {pin=1}
 
-EnumDeclarationStatement ::= enum Id '{' EnumItemDeclarations? '}' {pin=1}
-private EnumItemDeclarations ::= EnumItemDeclaration (',' EnumItemDeclaration)* ','?
-EnumItemDeclaration ::= Id [ '=' Literal ]
+EnumDeclaration ::= enum Id '{' EnumItemDeclarations? '}' {pin=1}
+private EnumItemDeclarations ::= EnumItem (',' EnumItem)* ','?
+EnumItem ::= Id [ '=' Literal ]
 
-LocalDeclarationStatement ::= local VariableOrFunctionDeclarations {pin=1}
-private VariableOrFunctionDeclarations ::= VarDeclarations | FunctionDeclaration { name="variable or function declarations" }
-private VarDeclarations ::= VarDeclaration (',' VarDeclaration)*
-VarDeclaration ::= Id [ '=' ExpressionWithNoComma ]
+LocalDeclaration ::= local VariableOrFunctionDeclarations {pin=1}
+private VariableOrFunctionDeclarations ::= VarDeclarationList | FunctionDeclaration { name="variable or function declarations" }
+VarDeclarationList ::= VarItem (',' VarItem)*
+VarItem ::= Id VarInit?
+VarInit ::= '=' ExpressionWithNoComma
 
-FunctionDeclarationStatement ::= FunctionDeclaration
-private FunctionDeclaration ::= function FunctionName FunctionParametersAndBody  {pin=1}
+FunctionDeclaration ::= function FunctionName Parameters FunctionBody  {pin=1}
 FunctionName ::= Id ('::' (Id | constructor))*
-private FunctionParametersAndBody ::= FunctionParameters FunctionBody
 FunctionBody ::= StatementOrEmpty
-
-FunctionParameters ::=
-'(' FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))? ')'
-| '(' FunctionDefaultParameter (',' FunctionDefaultParameter)* ')'
-| '(' FunctionVariableNumberParameter? ')'
+Parameters ::= '(' ParameterList? ')'
+ParameterList ::=
+FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))?
+| FunctionDefaultParameter (',' FunctionDefaultParameter)*
+| FunctionVariableNumberParameter?
 
 FunctionParameter ::= Id (!'=')
 FunctionDefaultParameter ::= Id '=' ExpressionWithNoComma
 FunctionVariableNumberParameter ::= '...'
 
-ClassDeclarationStatement ::= class ClassName [extends ClassName] ClassBody {pin=1}
+ClassDeclaration ::= class ClassName [extends ClassName] ClassBody {pin=1}
 ClassName ::= Id ('.' Id)*
 ClassBody ::= '{' ClassMembers? '}'
-private ClassMembers ::= ClassMember (semi* ClassMember)* semi?
+
+ClassMembers ::= ClassMember (semi* ClassMember)* semi?
 ClassMember ::= ClassAttribute? static? (ConstructorDeclaration | RegularClassMember)
-private RegularClassMember ::= KeyValuePair | FunctionDeclaration
-ConstructorDeclaration ::= constructor FunctionParametersAndBody
+private RegularClassMember ::= KeyValuePair | MethodDeclaration
+ConstructorDeclaration ::= constructor Parameters FunctionBody
+MethodDeclaration ::= function FunctionName Parameters FunctionBody
 ClassAttribute ::= '</' KeyValuePairs? '/>'
 
 ReturnStatement ::= return Expression? {pin=1}
@@ -213,21 +214,20 @@ ContinueStatement ::= continue
 YieldStatement ::= yield Expression {pin=1}
 ThrowStatement ::= throw Expression {pin=1}
 
-ForLoopStatement ::= for ForLoopPartsInBraces StatementOrEmpty {pin=1}
+ForStatement ::= for '(' ForLoopParts ')' StatementOrEmpty {pin=1}
+ForLoopParts::= [LocalDeclaration | Expression] ';' Expression? ';' Expression?
 
-ForLoopPartsInBraces::= '(' ForLoopParts ')'
-ForLoopParts::= [LocalDeclarationStatement | Expression] ';' Expression? ';' Expression?
+ForeachStatement ::= foreach '(' [Id ','] Id in Expression ')' StatementOrEmpty {pin=1}
+WhileStatement ::= while '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty {pin=1}
+DoWhileStatement ::= do StatementOrEmpty while '(' ExpressionWithRecoverUntilParen ')' {pin=1}
+IfStatement ::= if '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty [semi? else StatementOrEmpty] {pin=1}
 
-ForEachLoopStatement ::= foreach '(' [Id ','] Id in Expression ')' StatementOrEmpty {pin=1}
-WhileLoopStatement ::= while '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty {pin=1}
-DoWhileLoopStatement ::= do StatementOrEmpty while '(' ExpressionWithRecoverUntilParen ')' {pin=1}
-IfConditionalStatement ::= if '(' ExpressionWithRecoverUntilParen ')' StatementOrEmpty [semi? else StatementOrEmpty] {pin=1}
-
-SwitchConditionalStatement ::= switch '(' ExpressionWithRecoverUntilParen ')' '{' SwitchCase* DefaultCase? '}' {pin=1}
+SwitchStatement ::= switch '(' ExpressionWithRecoverUntilParen ')' '{' SwitchCase* DefaultCase? '}' {pin=1}
 SwitchCase ::= case Expression ':' Statements? {pin=1}
 DefaultCase::= default ':' Statements? {pin=2}
 
-TryCatchStatement ::= try StatementOrEmpty catch '(' Id ')' StatementOrEmpty {pin=1}
+TryStatement ::= try StatementOrEmpty semi? CatchPart {pin=1}
+CatchPart ::= catch '(' Id ')' StatementOrEmpty {pin=1}
 
 private ExpressionWithRecoverUntilParen ::= Expression {recoverWhile=parenthesesRecovery}
 private parenthesesRecovery ::= !')'
@@ -235,17 +235,17 @@ private parenthesesRecovery ::= !')'
 Expression ::=
   CommaExpression
   | AssignExpression
-  | ElvisExpression
-  | OrExpression
+  | TernaryExpression
+  | LogicOrExpression
   | second_expr_group
-  | BitOrExpression
-  | BitXorExpression
-  | BitAndExpression
+  | BitwiseOrExpression
+  | BitwiseXorExpression
+  | BitwiseAndExpression
   | CompareExpression
-  | LessGreaterEqualExpression
-  | BitShiftExpression
-  | PlusMinusExpression
-  | MulDivModExpression
+  | RelationalExpression
+  | ShiftExpression
+  | AdditiveExpression
+  | MultiplicativeExpression
   | first_expr_group
   | c_expr_group
   | b_expr_group
@@ -253,57 +253,72 @@ Expression ::=
 
 private ExpressionWithNoComma ::=
   AssignExpression
-  | ElvisExpression
-  | OrExpression
+  | TernaryExpression
+  | LogicOrExpression
   | second_expr_group
-  | BitOrExpression
-  | BitXorExpression
-  | BitAndExpression
+  | BitwiseOrExpression
+  | BitwiseXorExpression
+  | BitwiseAndExpression
   | CompareExpression
-  | LessGreaterEqualExpression
-  | BitShiftExpression
-  | PlusMinusExpression
-  | MulDivModExpression
+  | RelationalExpression
+  | ShiftExpression
+  | AdditiveExpression
+  | MultiplicativeExpression
   | first_expr_group
   | c_expr_group
   | b_expr_group
   | a_expr_group {name="expression"}
 
-private a_expr_group ::= (SimpleRefExpression | LiteralExpression | ParenExpression)
-private b_expr_group ::= (ArrayItemExpression | RefExpression | FunctionCallExpression)
+private a_expr_group ::= (SimpleRefExpression | LiteralExpression | ParenthesizedExpression)
+private b_expr_group ::= (ArrayItemExpression | ReferenceExpression | CallExpression)
 private c_expr_group ::= (ClassExpression | TableExpression | ArrayExpression | FunctionExpression | LambdaFunctionExpression )
-private first_expr_group ::= (UnaryExpression | PreIncrementExpression | InstanceOfExpression )
-private second_expr_group ::= (AndExpression | InExpression)
+private first_expr_group ::= (UnaryExpression | PrefixExpression | InstanceOfExpression )
+private second_expr_group ::= (LogicAndExpression | InExpression)
+
+MultiplicativeOperator ::= '*' | '/' | '%'
+AdditiveOperator ::= '+' | '-'
+ShiftOperator ::= '<<' | '>>>' | '>>'
+RelationalOperator ::= '<' | '<=' | '>' | '>='
+EqualityOperator ::= '==' | '!=' | '<=>'
+AssignmentOperator ::= '=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-='
+UnaryOperator ::= '-' | '!' | '~' | typeof | clone | delete | resume
+PrefixOperator ::= '++' | '--'
 
 CommaExpression ::= Expression ',' Expression
-AssignExpression ::= Expression ('=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-=' ) Expression { rightAssociative=true }
-ElvisExpression ::= Expression '?' Expression ':' Expression
-OrExpression ::= Expression '||' Expression
-AndExpression ::= Expression '&&' Expression
+AssignExpression ::= Expression AssignmentOperator Expression { rightAssociative=true }
+TernaryExpression ::= Expression '?' Expression ':' Expression
+LogicOrExpression ::= Expression '||' Expression
+LogicAndExpression ::= Expression '&&' Expression
 InExpression ::= Expression in Expression
-BitOrExpression ::= Expression '|' Expression
-BitXorExpression ::= Expression '^' Expression
-BitAndExpression ::= Expression '&' Expression
-CompareExpression ::= Expression ('==' | '!=' | '<=>' ) Expression
-LessGreaterEqualExpression ::= Expression ('<' | '<=' | '>' | '>=' ) Expression
-BitShiftExpression ::= Expression ('<<' | '>>' | '>>>') Expression
-PlusMinusExpression ::= Expression ( '+' | '-') Expression
-MulDivModExpression ::= Expression ('*' | '/' | '%') Expression
-UnaryExpression ::= ('-' | '!' | '~' | typeof | clone | delete | resume) Expression
-PreIncrementExpression ::= ('++' | '--') NamedElementExpression
+BitwiseOrExpression ::= Expression '|' Expression
+BitwiseXorExpression ::= Expression '^' Expression
+BitwiseAndExpression ::= Expression '&' Expression
+CompareExpression ::= Expression EqualityOperator Expression
+RelationalExpression ::= Expression RelationalOperator Expression
+ShiftExpression ::= Expression ShiftOperator Expression
+AdditiveExpression ::= Expression AdditiveOperator Expression
+MultiplicativeExpression ::= Expression MultiplicativeOperator Expression
+UnaryExpression ::= UnaryOperator Expression
+PrefixExpression ::= PrefixOperator NamedElementExpression
 InstanceOfExpression ::= Expression instanceof Expression
-ParenExpression ::= '(' Expression ')'
+ParenthesizedExpression ::= '(' Expression ')'
 ClassExpression ::= class [extends ClassName] ClassBody
-FunctionExpression ::= function FunctionParametersAndBody
-LambdaFunctionExpression ::= '@' FunctionParameters ExpressionWithNoComma
-FunctionCallExpression ::= Expression FunctionArguments
-FunctionArguments ::= '(' ')' | '(' FunctionArgument (',' FunctionArgument)* ')'
-FunctionArgument ::= ExpressionWithNoComma
+FunctionExpression ::= function Parameters FunctionBody
+LambdaFunctionExpression ::= '@' Parameters ExpressionWithNoComma
+CallExpression ::= Expression Arguments
+Arguments ::= '(' ArgumentList? ')'
+ArgumentList ::= ArgumentListPart (',' ArgumentListPart)* {recoverWhile="argument_list_recover"}
+private argument_list_recover ::= !(')')
+private ArgumentListPart ::= ExpressionWithNoComma {recoverWhile="argument_list_part_recover"}
+private argument_list_part_recover ::= !(')' | ',')
 
-ArrayExpression ::= '[' ArrayElements?  ']'
-private ArrayElements ::= ExpressionWithNoComma (',' ExpressionWithNoComma)* ','?
+ArrayExpression ::= '[' ArrayElementsList?  ']'
+private ArrayElementsList ::= ArrayListPart (',' ArrayListPart)* ','? {recoverWhile="array_list_recover"}
+private array_list_recover ::= !(']')
+private ArrayListPart ::= ExpressionWithNoComma {recoverWhile="array_list_part_recover"}
+private array_list_part_recover ::= !(']' | ',')
 
-ArrayItemExpression ::= Expression '[' ExpressionWithNoComma ']' ['++' | '--']
+ArrayItemExpression ::= Expression '[' ExpressionWithNoComma ']' PrefixOperator?
 
 TableExpression ::= '{' KeyValuePairs? '}'
 private TableItemSeparator ::= ',' | '<NL>'
@@ -312,10 +327,10 @@ TableItem ::= KeyValuePair | FunctionDeclaration
 private KeyValuePair ::= Key '=' ExpressionWithNoComma
 Key ::= Id | '[' Expression ']'
 
-private NamedElementExpression ::= SimpleRefExpression | RefExpression | ArrayItemExpression
-RefExpression ::= Expression '.' (Id | constructor)
+private NamedElementExpression ::= SimpleRefExpression | ReferenceExpression | ArrayItemExpression
+ReferenceExpression ::= Expression '.' (Id | constructor)
 
-SimpleRefExpression ::= Id ['++' | '--'] {elementType=RefExpression}
+SimpleRefExpression ::= Id PrefixOperator? {elementType=ReferenceExpression}
 LiteralExpression ::= Literal
 
 Literal ::=

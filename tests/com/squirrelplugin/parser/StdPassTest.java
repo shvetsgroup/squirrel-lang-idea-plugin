@@ -5,7 +5,7 @@ import com.squirrelplugin.SquirrelParserDefinition;
 
 public class StdPassTest extends ParsingTestCase {
     public StdPassTest() {
-        super("parser/std_pass", "nut", new SquirrelParserDefinition());
+        super("parser/std_pass", "nut", true, new SquirrelParserDefinition());
     }
 
     public void testClass() {

@@ -8,5 +8,10 @@ continue
 yield 213 + 321
 throw 213 + 321
 
+try
+print()
+catch (a)
+print()
+
 try {} catch (a) {}
 try ; catch (a) ;

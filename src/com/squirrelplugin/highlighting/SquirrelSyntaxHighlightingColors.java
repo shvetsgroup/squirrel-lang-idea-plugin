@@ -8,7 +8,7 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 
 public class SquirrelSyntaxHighlightingColors {
   public static final TextAttributesKey LINE_COMMENT = createTextAttributesKey("SQ_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
-  public static final TextAttributesKey BLOCK_COMMENT = createTextAttributesKey("SQ_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
+  public static final TextAttributesKey MULTI_LINE_COMMENT = createTextAttributesKey("SQ_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
   public static final TextAttributesKey KEYWORD = createTextAttributesKey("SQ_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
   public static final TextAttributesKey STRING = createTextAttributesKey("SQ_STRING", DefaultLanguageHighlighterColors.STRING);
   public static final TextAttributesKey NUMBER = createTextAttributesKey("SQ_NUMBER", DefaultLanguageHighlighterColors.NUMBER);

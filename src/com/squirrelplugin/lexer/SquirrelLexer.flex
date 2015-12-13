@@ -2,7 +2,7 @@ package com.squirrelplugin;
 import java.util.*;
 import com.intellij.lexer.*;
 import com.intellij.psi.tree.IElementType;
-import static com.squirrelplugin.psi.SquirrelTypes.*;
+import static com.squirrelplugin.SquirrelTokenTypes.*;
 import static com.squirrelplugin.SquirrelParserDefinition.*;
 import com.intellij.psi.TokenType;
 
@@ -55,7 +55,7 @@ import com.intellij.psi.TokenType;
 %eof}
 
 LINE_COMMENT=("//"|#)[^\r\n]*
-BLOCK_COMMENT="/"\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+"/")
+MULTI_LINE_COMMENT="/"\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+"/")
 IDENTIFIER=[a-zA-Z_]+[a-zA-Z_0-9]*
 INT=((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('[:letter:]')|(0|([1-9][0-9]*)))
 FLOAT=((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))
@@ -72,7 +72,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   {NL}+                { return NL; }
 
   "}"                  { popState(); return RBRACE; }
-  "]"                  { pushState(MAYBE_NL_EXPRESSION); return RBRACK; }
+  "]"                  { pushState(MAYBE_NL_EXPRESSION); return RBRACKET; }
   ")"                  {
 
                         myLeftParenCount--;
@@ -86,10 +86,10 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
                        return RPAREN;
                        }
-  "++"                 { return INCREMENT; }
-  "--"                 { return DECREMENT; }
+  "++"                 { return PLUS_PLUS; }
+  "--"                 { return MINUS_MINUS; }
   "{"                  { pushState(LBRACE_START); return LBRACE; }
-  "["                  { return LBRACK; }
+  "["                  { return LBRACKET; }
   "("                  { myLeftParenCount++; return LPAREN; }
   "::"                 { return DOUBLE_COLON; }
   ":"                  { return COLON; }
@@ -102,19 +102,19 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   ">>"                 { return SHIFT_RIGHT; }
   ">>>"                { return UNSIGNED_SHIFT_RIGHT; }
   "<=>"                { return CMP; }
-  "=="                 { return EQ; }
+  "=="                 { return EQ_EQ; }
   "!="                 { return NOT_EQ; }
-  "<="                 { return LESS_OR_EQUAL; }
-  ">="                 { return GREATER_OR_EQUAL; }
+  "<="                 { return LESS_OR_EQ; }
+  ">="                 { return GREATER_OR_EQ; }
   "<-"                 { return SEND_CHANNEL; }
-  "+="                 { return PLUS_ASSIGN; }
-  "-="                 { return MINUS_ASSIGN; }
-  "*="                 { return MUL_ASSIGN; }
-  "/="                 { return QUOTIENT_ASSIGN; }
-  "%="                 { return REMAINDER_ASSIGN; }
-  "||"                 { return COND_OR; }
-  "&&"                 { return COND_AND; }
-  "="                  { return ASSIGN; }
+  "+="                 { return PLUS_EQ; }
+  "-="                 { return MINUS_EQ; }
+  "*="                 { return MUL_EQ; }
+  "/="                 { return DIV_EQ; }
+  "%="                 { return REMAINDER_EQ; }
+  "||"                 { return OR_OR; }
+  "&&"                 { return AND_AND; }
+  "="                  { return EQ; }
   "!"                  { return NOT; }
   "~"                  { return BIT_NOT; }
   "|"                  { return BIT_OR; }
@@ -125,11 +125,11 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "+"                  { return PLUS; }
   "-"                  { return MINUS; }
   "*"                  { return MUL; }
-  "/"                  { return QUOTIENT; }
+  "/"                  { return DIV; }
   "%"                  { return REMAINDER; }
   "?"                  { return QUESTION; }
   "@"                  { return AT; }
-  "."                  { return PERIOD; }
+  "."                  { return DOT; }
   "const"              { return CONST; }
   "enum"               { return ENUM; }
   "local"              { return LOCAL; }
@@ -164,7 +164,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "case"               { return CASE; }
   "default"            { return DEFAULT; }
   "try"                { return TRY; }
-  "catch"              { return CATCH; }
+  "catch"              { pushState(STATEMENT_WITH_PARENTHESES); return CATCH; }
   "typeof"             { return TYPEOF; }
   "clone"              { return CLONE; }
   "delete"             { return DELETE; }
@@ -175,7 +175,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "null"               { return NULL; }
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
-  {BLOCK_COMMENT}      { return BLOCK_COMMENT; }
+  {MULTI_LINE_COMMENT}      { return MULTI_LINE_COMMENT; }
   {IDENTIFIER}         { pushState(MAYBE_NL_EXPRESSION); return IDENTIFIER; }
   {INT}                { pushState(MAYBE_NL_EXPRESSION); return INT; }
   {FLOAT}              { pushState(MAYBE_NL_EXPRESSION); return FLOAT; }
@@ -194,7 +194,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 {WS}+              { return WS; }
 {NL}+              { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
-{BLOCK_COMMENT}    { return BLOCK_COMMENT; }
+{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
 
 .                  { popState(); yypushback(yylength());  }
 }
@@ -203,7 +203,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 {WS}+              { return WS; }
 {NL}+              { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NL; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
-{BLOCK_COMMENT}    { return BLOCK_COMMENT; }
+{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
 
 .                  { popState(); yypushback(yylength());  }
 }
@@ -212,7 +212,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 {WS}+              { return WS; }
 {NL}+              { return NL; }
 {LINE_COMMENT}     { return LINE_COMMENT; }
-{BLOCK_COMMENT}    { return BLOCK_COMMENT; }
+{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
 
 "instanceof"       { popState(); yypushback(yylength()); }
 
