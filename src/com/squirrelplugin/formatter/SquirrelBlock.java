@@ -30,7 +30,7 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
     private SpacingBuilder spacingBuilder; // TODO: Remove
     private final SquirrelSpacingProcessor mySpacingProcessor;
     private final SquirrelWrappingProcessor myWrappingProcessor;
-//    private final SquirrelAlignmentProcessor myAlignmentProcessor;
+    private final SquirrelAlignmentProcessor myAlignmentProcessor;
     private final CodeStyleSettings mySettings;
     private Wrap myChildWrap = null;
     private final Indent myIndent;
@@ -43,7 +43,7 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
         myIndentProcessor = new SquirrelIndentProcessor(mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
         mySpacingProcessor = new SquirrelSpacingProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
         myWrappingProcessor = new SquirrelWrappingProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
-//        myAlignmentProcessor = new SquirrelAlignmentProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
+        myAlignmentProcessor = new SquirrelAlignmentProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
         myIndent = myIndentProcessor.getChildIndent(myNode);
     }
 
@@ -84,9 +84,9 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
 
     @Nullable
     protected Alignment createChildAlignment(ASTNode child) {
-//        if (child.getElementType() != LPAREN && child.getElementType() != BLOCK) {
-//            return myAlignmentProcessor.createChildAlignment();
-//        }
+        if (child.getElementType() != LPAREN && child.getElementType() != BLOCK) {
+            return myAlignmentProcessor.createChildAlignment();
+        }
         return null;
     }
 
