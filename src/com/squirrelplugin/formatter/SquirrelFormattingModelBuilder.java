@@ -1,6 +1,5 @@
 package com.squirrelplugin.formatter;
 
-import com.intellij.formatting.SpacingBuilder;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.ASTNode;
@@ -9,11 +8,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.formatter.DocumentBasedFormattingModel;
-import com.squirrelplugin.SquirrelLanguage;
 import com.squirrelplugin.psi.SquirrelFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import static com.squirrelplugin.SquirrelTokenTypes.*;
 
 public class SquirrelFormattingModelBuilder implements FormattingModelBuilder {
     @NotNull

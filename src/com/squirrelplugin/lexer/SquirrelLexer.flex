@@ -175,7 +175,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "null"               { return NULL; }
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
-  {MULTI_LINE_COMMENT}      { return MULTI_LINE_COMMENT; }
+  {MULTI_LINE_COMMENT} { return MULTI_LINE_COMMENT; }
   {IDENTIFIER}         { pushState(MAYBE_NL_EXPRESSION); return IDENTIFIER; }
   {INT}                { pushState(MAYBE_NL_EXPRESSION); return INT; }
   {FLOAT}              { pushState(MAYBE_NL_EXPRESSION); return FLOAT; }
@@ -185,43 +185,50 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 }
 
 <RBRACE_SEMICOLON> {
-{ANY}              { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-.                  { popState(); yypushback(yylength());  }
+{ANY}                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+.                      { popState(); yypushback(yylength());  }
 }
 
-
 <MAYBE_NL_TERMINAL_KEYWORD> {
-{WS}+              { return WS; }
-{NL}+              { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{LINE_COMMENT}     { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
-
-.                  { popState(); yypushback(yylength());  }
+{WS}+                  { return WS; }
+{NL}+                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+{LINE_COMMENT}         { return LINE_COMMENT; }
+{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
+.                      { popState(); yypushback(yylength());  }
 }
 
 <MAYBE_NL_EXPRESSION> {
-{WS}+              { return WS; }
-{NL}+              { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NL; }
-{LINE_COMMENT}     { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
-
-.                  { popState(); yypushback(yylength());  }
+{WS}+                  { return WS; }
+{NL}+                  { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NL; }
+{LINE_COMMENT}         { return LINE_COMMENT; }
+{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
+.                      { popState(); yypushback(yylength());  }
 }
-//
+
 <MAYBE_NL_EXPRESSION_CONFIRM> {
-{WS}+              { return WS; }
-{NL}+              { return NL; }
-{LINE_COMMENT}     { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}    { return MULTI_LINE_COMMENT; }
+{WS}+                  { return WS; }
+{NL}+                  { return NL; }
+{LINE_COMMENT}         { return LINE_COMMENT; }
+{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
 
-"instanceof"       { popState(); yypushback(yylength()); }
+// binary operator should continue expression
+"instanceof"           { popState(); yypushback(yylength()); }
 
-"["                { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-"::"               { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{IDENTIFIER}       { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{INT}              { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{FLOAT}            { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{STRING}           { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+// unary operators should break expression (rest of them match as {IDENTIFIER})
+"!"                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+"~"                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+"--"                   { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+"++"                   { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+
+"{"                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+"["                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; } // TODO: works as current compiler, but may be not right
+"("                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; } // TODO: works not as current compiler, but may be not right
+
+"::"                   { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+{IDENTIFIER}           { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+{INT}                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+{FLOAT}                { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+{STRING}               { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 
 .                  { popState(); yypushback(yylength()); }
 }

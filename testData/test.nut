@@ -1,4 +1,1 @@
-try
-print()
-catch (a)
-print()
+local a = class{ a=3d=40k=3 }

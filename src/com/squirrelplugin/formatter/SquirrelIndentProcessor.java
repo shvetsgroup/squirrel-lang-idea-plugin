@@ -85,12 +85,12 @@ public class SquirrelIndentProcessor {
             return Indent.getContinuationIndent();
         }
         if (elementType == CALL_EXPRESSION) {
-            if (FormatterUtil.isPrecededBy(node, ASSIGNMENT_OPERATORS)) {
+            if (FormatterUtil.isPrecededBy(node, ASSIGNMENT_OPERATOR)) {
                 return Indent.getContinuationIndent();
             }
         }
         if ((elementType == REFERENCE_EXPRESSION || BINARY_EXPRESSIONS.contains(elementType)) &&
-                (FormatterUtil.isPrecededBy(node, ASSIGNMENT_OPERATORS) || FormatterUtil.isPrecededBy(node, EQ))) {
+                (FormatterUtil.isPrecededBy(node, ASSIGNMENT_OPERATOR) || FormatterUtil.isPrecededBy(node, EQ))) {
             return Indent.getContinuationIndent();
         }
         if (elementType == DOT || prevSiblingType == DOT) {

@@ -38,11 +38,6 @@ public interface SquirrelTokenTypesSets {
             MULTIPLICATIVE_EXPRESSION
     );
 
-    TokenSet ASSIGNMENT_OPERATORS = TokenSet.create(
-            // '=' | '*=' | '/=' | '%=' | '+=' | '-='
-            EQ, MUL_EQ, DIV_EQ, REMAINDER_EQ, PLUS_EQ, MINUS_EQ
-    );
-
     TokenSet LOGIC_OPERATORS = TokenSet.create(
             AND_AND, OR_OR
     );

@@ -189,13 +189,13 @@ FunctionName ::= Id ('::' (Id | constructor))*
 FunctionBody ::= StatementOrEmpty
 Parameters ::= '(' ParameterList? ')'
 ParameterList ::=
-FunctionParameter (',' FunctionParameter)* ((',' FunctionDefaultParameter)+ | (',' FunctionVariableNumberParameter))?
-| FunctionDefaultParameter (',' FunctionDefaultParameter)*
-| FunctionVariableNumberParameter?
+Parameter (',' Parameter)* ((',' DefaultParameter)+ | (',' VariableLengthParameter))?
+| DefaultParameter (',' DefaultParameter)*
+| VariableLengthParameter?
 
-FunctionParameter ::= Id (!'=')
-FunctionDefaultParameter ::= Id '=' ExpressionWithNoComma
-FunctionVariableNumberParameter ::= '...'
+Parameter ::= Id (!'=')
+DefaultParameter ::= Id '=' ExpressionWithNoComma
+VariableLengthParameter ::= '...'
 
 ClassDeclaration ::= class ClassName [extends ClassName] ClassBody {pin=1}
 ClassName ::= Id ('.' Id)*
@@ -281,7 +281,8 @@ ShiftOperator ::= '<<' | '>>>' | '>>'
 RelationalOperator ::= '<' | '<=' | '>' | '>='
 EqualityOperator ::= '==' | '!=' | '<=>'
 AssignmentOperator ::= '=' | '<-' | '*=' | '/=' | '%=' | '+=' | '-='
-UnaryOperator ::= '-' | '!' | '~' | typeof | clone | delete | resume
+UnaryOperator ::= '-' | '!' | '~'
+UnaryAction ::= typeof | clone | delete | resume
 PrefixOperator ::= '++' | '--'
 
 CommaExpression ::= Expression ',' Expression
@@ -298,7 +299,7 @@ RelationalExpression ::= Expression RelationalOperator Expression
 ShiftExpression ::= Expression ShiftOperator Expression
 AdditiveExpression ::= Expression AdditiveOperator Expression
 MultiplicativeExpression ::= Expression MultiplicativeOperator Expression
-UnaryExpression ::= UnaryOperator Expression
+UnaryExpression ::= (UnaryOperator | UnaryAction) Expression
 PrefixExpression ::= PrefixOperator NamedElementExpression
 InstanceOfExpression ::= Expression instanceof Expression
 ParenthesizedExpression ::= '(' Expression ')'

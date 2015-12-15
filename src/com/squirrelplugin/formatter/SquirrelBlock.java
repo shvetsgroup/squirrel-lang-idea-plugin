@@ -4,12 +4,14 @@ import com.intellij.formatting.*;
 import com.intellij.formatting.templateLanguages.BlockWithParent;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.squirrelplugin.SquirrelFileType;
 import com.squirrelplugin.SquirrelLanguage;
+import com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +42,13 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
     protected SquirrelBlock(ASTNode node, Wrap wrap, Alignment alignment, CodeStyleSettings settings) {
         super(node, wrap, alignment);
         mySettings = settings;
-        myIndentProcessor = new SquirrelIndentProcessor(mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
-        mySpacingProcessor = new SquirrelSpacingProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
-        myWrappingProcessor = new SquirrelWrappingProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
-        myAlignmentProcessor = new SquirrelAlignmentProcessor(node, mySettings.getCommonSettings(SquirrelLanguage.INSTANCE));
+        CommonCodeStyleSettings cmSettings = mySettings.getCommonSettings(SquirrelLanguage.INSTANCE);
+        SquirrelCodeStyleSettings sqSettings = mySettings.getCustomSettings(SquirrelCodeStyleSettings.class);
+
+        myIndentProcessor = new SquirrelIndentProcessor(cmSettings);
+        mySpacingProcessor = new SquirrelSpacingProcessor(node, cmSettings, sqSettings);
+        myWrappingProcessor = new SquirrelWrappingProcessor(node, cmSettings);
+        myAlignmentProcessor = new SquirrelAlignmentProcessor(node, cmSettings);
         myIndent = myIndentProcessor.getChildIndent(myNode);
     }
 
