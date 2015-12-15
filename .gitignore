@@ -1,6 +1,2 @@
-.DS_Store
 out
 gen
-_go.flex
-go.bnf
-test.bnf
