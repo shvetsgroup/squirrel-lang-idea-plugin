@@ -41,6 +41,7 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "SPACE_BEFORE_WHILE_LBRACE",
             "SPACE_BEFORE_DO_LBRACE",
             "SPACE_BEFORE_SWITCH_LBRACE",
+            "SPACE_BEFORE_TRY_LBRACE",
             "SPACE_BEFORE_CATCH_LBRACE",
 
             // Before keywords
@@ -79,7 +80,9 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "SPACE_BEFORE_FUNCTION_EXPRESSION_PARENTHESES",
             "SPACE_BEFORE_FOREACH_PARENTHESES",
             "SPACE_BEFORE_FOREACH_LBRACE",
-            "SPACE_WITHIN_FOREACH_PARENTHESES"
+            "SPACE_WITHIN_FOREACH_PARENTHESES",
+            "SPACE_WITHIN_EMPTY_BRACES",
+            "SPACE_WITHIN_EMPTY_BRACKETS"
     };
 
     public static String standardBlankLinesSettings[] = {
@@ -262,6 +265,22 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
                     CodeStyleSettingsCustomizable.SPACES_WITHIN,
                     CodeStyleSettingsCustomizable.OptionAnchor.AFTER,
                     "SPACE_WITHIN_FOR_PARENTHESES"
+            );
+            consumer.showCustomOption(
+                    SquirrelCodeStyleSettings.class,
+                    "SPACE_WITHIN_EMPTY_BRACES",
+                    "Empty code braces",
+                    CodeStyleSettingsCustomizable.SPACES_WITHIN,
+                    CodeStyleSettingsCustomizable.OptionAnchor.AFTER,
+                    "SPACE_WITHIN_BRACES"
+            );
+            consumer.showCustomOption(
+                    SquirrelCodeStyleSettings.class,
+                    "SPACE_WITHIN_EMPTY_BRACKETS",
+                    "Empty brackets",
+                    CodeStyleSettingsCustomizable.SPACES_WITHIN,
+                    CodeStyleSettingsCustomizable.OptionAnchor.AFTER,
+                    "SPACE_WITHIN_BRACKETS"
             );
             consumer.renameStandardOption("SPACE_BEFORE_METHOD_CALL_PARENTHESES", "Function call parentheses");
             consumer.renameStandardOption("SPACE_BEFORE_METHOD_PARENTHESES", "Function declaration parentheses");

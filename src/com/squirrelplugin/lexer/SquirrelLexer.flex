@@ -64,36 +64,39 @@ NL=\r|\n|\r\n
 WS=[ \t\f]
 ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
-%state MAYBE_NL_EXPRESSION, MAYBE_NL_EXPRESSION_CONFIRM, MAYBE_NL_TERMINAL_KEYWORD, INSIDE_IFELSE, RBRACE_SEMICOLON, STATEMENT_WITH_PARENTHESES, DO_STATEMENT, LBRACE_START
+%state SEE_IF_NEXT_IS_NL, MAYBE_SET_SYNTHETIC_SEMICOLON, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES, DO_STATEMENT, TRY_STATEMENT, BRACES
 
 %%
-<YYINITIAL, STATEMENT_WITH_PARENTHESES, DO_STATEMENT, LBRACE_START> {
+<YYINITIAL, PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES, DO_STATEMENT, TRY_STATEMENT, BRACES> {
   {WS}+                { return WS; }
   {NL}+                { return NL; }
 
+  "{"                  { pushState(BRACES); return LBRACE; }
   "}"                  { popState(); return RBRACE; }
-  "]"                  { pushState(MAYBE_NL_EXPRESSION); return RBRACKET; }
+
+  "["                  { return LBRACKET; }
+  "]"                  { pushState(SEE_IF_NEXT_IS_NL); return RBRACKET; }
+
+  "("                  { myLeftParenCount++; return LPAREN; }
   ")"                  {
 
                         myLeftParenCount--;
                         if (myLeftParenCount == 0) {
-                            if (yystate() == STATEMENT_WITH_PARENTHESES) {
+                            if (yystate() == PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES) {
                                 popState();
                             } else {
-                                pushState(MAYBE_NL_EXPRESSION);
+                                pushState(SEE_IF_NEXT_IS_NL);
                             }
                         }
 
                        return RPAREN;
                        }
-  "++"                 { return PLUS_PLUS; }
-  "--"                 { return MINUS_MINUS; }
-  "{"                  { pushState(LBRACE_START); return LBRACE; }
-  "["                  { return LBRACKET; }
-  "("                  { myLeftParenCount++; return LPAREN; }
+
+  "++"                 { pushState(SEE_IF_NEXT_IS_NL); return PLUS_PLUS; }
+  "--"                 { pushState(SEE_IF_NEXT_IS_NL); return MINUS_MINUS; }
   "::"                 { return DOUBLE_COLON; }
   ":"                  { return COLON; }
-  ";"                  { if (yystate() == DO_STATEMENT) { popState(); } return SEMICOLON; }
+  ";"                  { return SEMICOLON; }
   ","                  { return COMMA; }
   "..."                { return MULTI_ARGS; }
   "</"                 { return CLASS_ATTR_START; }
@@ -133,38 +136,63 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "const"              { return CONST; }
   "enum"               { return ENUM; }
   "local"              { return LOCAL; }
-  "function"           { pushState(STATEMENT_WITH_PARENTHESES); return FUNCTION; }
+  "function"           { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FUNCTION; }
   "constructor"        { return CONSTRUCTOR; } // TODO: CAN ALSO BE A STATEMENT WITH PARENTHESES
   "class"              { return CLASS; }
   "extends"            { return EXTENDS; }
   "static"             { return STATIC; }
-  "break"              { pushState(MAYBE_NL_TERMINAL_KEYWORD); return BREAK; }
-  "continue"           { pushState(MAYBE_NL_TERMINAL_KEYWORD); return CONTINUE; }
-  "return"             { pushState(MAYBE_NL_TERMINAL_KEYWORD); return RETURN; }
-  "yield"              { pushState(MAYBE_NL_TERMINAL_KEYWORD); return YIELD; }
+  "break"              { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return BREAK; }
+  "continue"           { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return CONTINUE; }
+  "return"             { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return RETURN; }
+  "yield"              { return YIELD; }
   "throw"              { return THROW; }
-  "for"                { pushState(STATEMENT_WITH_PARENTHESES); return FOR; }
-  "foreach"            { pushState(STATEMENT_WITH_PARENTHESES); return FOREACH; }
+  "for"                { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FOR; }
+  "foreach"            { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FOREACH; }
   "in"                 { return IN; }
+
+  // We need to track state of these two in order to place correct synthetic semicolons.
+  // Let's consider following code:
+  //
+  // do
+  //   print()
+  // while (a)
+  // a = 1
+  //
+  // while (b)
+  //   b--
+  //
+  // There are 2 possible problems when you don't track state:
+  // 1) syn_semicolon will be placed after print() which will break BNF rule causing an error.
+  // 2) syn_semicolon will be placed after "while (b)", which will produce incorrect PSI.
+  //
+  // So, to fix first one, we do special treatment inside MAYBE_SET_SYNTHETIC_SEMICOLON for while keyword.
+  // To fix second, we do some checks in the code of "while" keyword (below).
+
+  "do"                 { pushState(DO_STATEMENT); return DO; }
   "while"              {
 
-                        if (yystate() != DO_STATEMENT) {
-                            pushState(STATEMENT_WITH_PARENTHESES);
-                        }
-                        else {
-                            popState();
-                        }
-                        return WHILE;
+if (yystate() != DO_STATEMENT) {
+  pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES);
+}
+else {
+  popState();
+}
+return WHILE;
 
                        }
-  "do"                 { pushState(DO_STATEMENT); return DO; } // Should track DO state to place a virtual semicolon after while
-  "if"                 { pushState(STATEMENT_WITH_PARENTHESES); return IF; }
+
+  // TRY has the problem 1 of DO, so we need to track it's state as well.
+  "try"                { pushState(TRY_STATEMENT); return TRY; }
+  "catch"              { popState(); pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return CATCH; }
+
+  // You would expect same type of problems with IF, but due to strange implementation of Squirrel, where it requires
+  // IFs to have semicolons after a statement. This might change in future.
+  "if"                 { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return IF; }
   "else"               { return ELSE; }
-  "switch"             { pushState(STATEMENT_WITH_PARENTHESES); return SWITCH; }
+
+  "switch"             { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return SWITCH; }
   "case"               { return CASE; }
   "default"            { return DEFAULT; }
-  "try"                { return TRY; }
-  "catch"              { pushState(STATEMENT_WITH_PARENTHESES); return CATCH; }
   "typeof"             { return TYPEOF; }
   "clone"              { return CLONE; }
   "delete"             { return DELETE; }
@@ -176,20 +204,15 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
   {MULTI_LINE_COMMENT} { return MULTI_LINE_COMMENT; }
-  {IDENTIFIER}         { pushState(MAYBE_NL_EXPRESSION); return IDENTIFIER; }
-  {INT}                { pushState(MAYBE_NL_EXPRESSION); return INT; }
-  {FLOAT}              { pushState(MAYBE_NL_EXPRESSION); return FLOAT; }
-  {STRING}             { pushState(MAYBE_NL_EXPRESSION); return STRING; }
+  {IDENTIFIER}         { pushState(SEE_IF_NEXT_IS_NL); return IDENTIFIER; }
+  {INT}                { pushState(SEE_IF_NEXT_IS_NL); return INT; }
+  {FLOAT}              { pushState(SEE_IF_NEXT_IS_NL); return FLOAT; }
+  {STRING}             { pushState(SEE_IF_NEXT_IS_NL); return STRING; }
 
   [^] { return TokenType.BAD_CHARACTER; }
 }
 
-<RBRACE_SEMICOLON> {
-{ANY}                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-.                      { popState(); yypushback(yylength());  }
-}
-
-<MAYBE_NL_TERMINAL_KEYWORD> {
+<MAYBE_TERMINATE_KEYWORD_WITH_NL> {
 {WS}+                  { return WS; }
 {NL}+                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {LINE_COMMENT}         { return LINE_COMMENT; }
@@ -197,15 +220,15 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 .                      { popState(); yypushback(yylength());  }
 }
 
-<MAYBE_NL_EXPRESSION> {
+<SEE_IF_NEXT_IS_NL> {
 {WS}+                  { return WS; }
-{NL}+                  { popState(); pushState(MAYBE_NL_EXPRESSION_CONFIRM); return NL; }
+{NL}+                  { popState(); pushState(MAYBE_SET_SYNTHETIC_SEMICOLON); return NL; }
 {LINE_COMMENT}         { return LINE_COMMENT; }
 {MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
 .                      { popState(); yypushback(yylength());  }
 }
 
-<MAYBE_NL_EXPRESSION_CONFIRM> {
+<MAYBE_SET_SYNTHETIC_SEMICOLON> {
 {WS}+                  { return WS; }
 {NL}+                  { return NL; }
 {LINE_COMMENT}         { return LINE_COMMENT; }
@@ -214,7 +237,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 // binary operator should continue expression
 "instanceof"           { popState(); yypushback(yylength()); }
 
-// unary operators should break expression (rest of them match as {IDENTIFIER})
+// unary operators should break expression (rest of operators (i.e. typeof) match as {IDENTIFIER})
 "!"                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 "~"                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 "--"                   { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
@@ -225,10 +248,12 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 "("                    { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; } // TODO: works not as current compiler, but may be not right
 
 "::"                   { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
+"while"                { popState(); yypushback(yylength()); if (yystate() != DO_STATEMENT) {return SEMICOLON_SYNTHETIC;} }
+"catch"                { popState(); yypushback(yylength()); if (yystate() != TRY_STATEMENT) {return SEMICOLON_SYNTHETIC;} }
 {IDENTIFIER}           { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {INT}                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {FLOAT}                { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 {STRING}               { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
 
-.                  { popState(); yypushback(yylength()); }
+.                      { popState(); yypushback(yylength()); }
 }

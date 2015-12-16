@@ -226,7 +226,7 @@ SwitchStatement ::= switch '(' ExpressionWithRecoverUntilParen ')' '{' SwitchCas
 SwitchCase ::= case Expression ':' Statements? {pin=1}
 DefaultCase::= default ':' Statements? {pin=2}
 
-TryStatement ::= try StatementOrEmpty semi? CatchPart {pin=1}
+TryStatement ::= try StatementOrEmpty CatchPart {pin=1}
 CatchPart ::= catch '(' Id ')' StatementOrEmpty {pin=1}
 
 private ExpressionWithRecoverUntilParen ::= Expression {recoverWhile=parenthesesRecovery}

@@ -1,11 +1,6 @@
 package com.squirrelplugin.formatter;
 
-import com.intellij.lang.java.JavaLanguage;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.psi.codeStyle.*;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import com.squirrelplugin.SquirrelFileType;
 import com.squirrelplugin.SquirrelLanguage;
 import com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterTestCase;
@@ -13,7 +8,7 @@ import com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsPr
 
 import java.lang.reflect.Field;
 
-public class QuickFormatterTest extends FormatterTestCase {
+public class SpacingFormatterTest extends FormatterTestCase {
     @Override
     protected String getTestDataPath() {
         return "../squirrel-lang-idea-plugin/testData";
@@ -25,12 +20,12 @@ public class QuickFormatterTest extends FormatterTestCase {
 
     public void testFormatterDefaultSettings() throws Exception {
         defaultSettings();
-        doTest("test", "test_after");
+        doTest("spacing", "spacing_default");
     }
 
     public void testFormatterCustomSettings() throws Exception {
         invertSettings();
-        doTest("test_after", "test");
+        doTest("spacing_default", "spacing_inverse");
     }
 
     public SquirrelCodeStyleSettings getSqSettings() {
@@ -45,14 +40,14 @@ public class QuickFormatterTest extends FormatterTestCase {
         defaultSettings();
 
         CommonCodeStyleSettings cmSettings = getCmSettings();
-        Class<?> cm = getCmSettings().getClass();
+        Class<?> cm = cmSettings.getClass();
         for (String s: SquirrelLanguageCodeStyleSettingsProvider.standardSpacingSettings) {
             Field field = cm.getDeclaredField(s);
             field.setBoolean(cmSettings, !field.getBoolean(cmSettings));
         }
 
         SquirrelCodeStyleSettings sqSettings = getSqSettings();
-        Class<?> sq = getCmSettings().getClass();
+        Class<?> sq = sqSettings.getClass();
         for (String s: SquirrelLanguageCodeStyleSettingsProvider.customSpacingSettings) {
             Field field = sq.getDeclaredField(s);
             field.setBoolean(sqSettings, !field.getBoolean(sqSettings));
@@ -93,6 +88,7 @@ public class QuickFormatterTest extends FormatterTestCase {
         getCmSettings().SPACE_BEFORE_WHILE_LBRACE = true;
         getCmSettings().SPACE_BEFORE_DO_LBRACE = true;
         getCmSettings().SPACE_BEFORE_SWITCH_LBRACE = true;
+        getCmSettings().SPACE_BEFORE_TRY_LBRACE = true;
         getCmSettings().SPACE_BEFORE_CATCH_LBRACE = true;
 
 // Before keywords
@@ -102,7 +98,9 @@ public class QuickFormatterTest extends FormatterTestCase {
 
 // Within
         getCmSettings().SPACE_WITHIN_BRACES = false; // In case of braces in one line
+        getSqSettings().SPACE_WITHIN_EMPTY_BRACES = false;
         getCmSettings().SPACE_WITHIN_BRACKETS = false;
+        getSqSettings().SPACE_WITHIN_EMPTY_BRACKETS = false;
         getCmSettings().SPACE_WITHIN_PARENTHESES = false;
         getCmSettings().SPACE_WITHIN_METHOD_CALL_PARENTHESES = false;
         getCmSettings().SPACE_WITHIN_EMPTY_METHOD_CALL_PARENTHESES = false;

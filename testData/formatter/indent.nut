@@ -127,7 +127,7 @@ else
 print()
 
 switch (a) {
-case 1: case2:
+case 1: case 2:
 case 3:
 print(123)
 default:

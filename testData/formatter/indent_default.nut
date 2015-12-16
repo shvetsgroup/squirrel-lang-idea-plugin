@@ -1,26 +1,26 @@
 local a = 3 +
-        3 + 3 +
-        3
+    3 + 3 +
+    3
 
 local a = 3
-        + 3 + 3
-        + 3
+    + 3 + 3
+    + 3
 
 local a = a.
-        a.
-        a
+    a.
+    a
 
 local a = a
-        .a
-        .a
+    .a
+    .a
 
 local a = a ?
-        b :
-        a
+    b :
+    a
 
 local a = a
-        ? b
-        : a
+    ? b
+    : a
 
 { print(); print(); }
 
@@ -41,16 +41,16 @@ enum a {
 }
 
 function a(p,
-        b,
-        v,
-        ...) {
+    b,
+    v,
+    ...) {
     print();
 }
 
 function a(p
-        ,b
-        ,v
-        ,...)
+    ,b
+    ,v
+    ,...)
     print();
 
 local a = function() {
@@ -127,7 +127,7 @@ else
     print()
 
 switch (a) {
-    case 1: case2:
+    case 1: case 2:
     case 3:
         print(123)
     default:

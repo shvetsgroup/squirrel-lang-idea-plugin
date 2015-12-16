@@ -14,6 +14,7 @@ import com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettings;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -75,8 +76,11 @@ public class SquirrelSpacingProcessor {
         x = setSpacingInTernaryOperator(type1, type2, elementType);
         if (x != null) return x;
 
-        x = setSpacingOther(type1, type2, elementType);
+        x = setSpacingOther(type1, type2, elementType, parentType);
         if (x != null) return x;
+
+//        x = setSpacingMultiline(type1, type2, elementType, parentType);
+//        if (x != null) return x;
 
         // TODO: New lines?
 //        if (type1 == LINE_COMMENT) {
@@ -88,15 +92,6 @@ public class SquirrelSpacingProcessor {
 //            return Spacing.createSpacing(spaces, spaces, lines, cmSettings.KEEP_LINE_BREAKS, cmSettings.KEEP_BLANK_LINES_IN_CODE);
 //        }
 
-//        if (SEMICOLON == type2) {
-//            if (type1 == SEMICOLON && elementType == STATEMENT) {
-//                return addSingleSpaceIf(false, true); // Empty statement on new line.
-//            }
-//            return Spacing.createSpacing(0, 0, 0, true, cmSettings.KEEP_BLANK_LINES_IN_CODE);
-//        }
-//
-//        if (AT == type1) return Spacing.createSpacing(0, 0, 0, false, 0);
-//
 //        if (FUNCTION_DEFINITION.contains(type2)) {
 //            boolean needsBlank = needsBlankLineBeforeFunction(elementType);
 //            if (needsBlank && !cmSettings.KEEP_LINE_BREAKS) {
@@ -190,53 +185,9 @@ public class SquirrelSpacingProcessor {
 //            }
 //            return Spacing.createSpacing(spaces, spaces, lineFeeds, keepBreaks, blanks);
 //        }
-//        if (elementType == STATEMENT && (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
-//            return Spacing.createSpacing(0, 0, 1, false, cmSettings.KEEP_BLANK_LINES_IN_CODE);
-//        }
-//        if (!COMMENTS.contains(type2) && parentType == BLOCK) {
-//            return addLineBreak();
-//        }
 //
-//        // Special checks for switch formatting according to squirrel_style, which conflicts with settings.
-//        if (type2 == RBRACE && (type1 == SWITCH_CASE || type1 == DEFAULT_CASE)) {
-//            // No blank line before closing brace in switch statement.
-//            return Spacing.createSpacing(0, 0, 1, false, 0);
-//        }
-//        if (type1 == COLON && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
-//            // No blank line before first statement of a case.
-//            return Spacing.createSpacing(0, 0, 1, false, 0);
-//        }
-//        if (elementType == SWITCH_STATEMENT && type1 == LBRACE) {
-//            // No blank line before first case of a switch.
-//            return Spacing.createSpacing(0, 0, 1, false, 0);
-//        }
 //
-////        if (type1 == STATEMENT || type2 == STATEMENT) {
-////            return addLineBreak();
-////        }
-//        if (type1 == CLASS_MEMBERS || type2 == CLASS_MEMBERS) {
-//            if (type1 == MULTI_LINE_COMMENT) {
-//                return addSingleSpaceIf(true, false);
-//            }
-//            else {
-//                return addSingleSpaceIf(false, true);
-//            }
-//        }
 //
-//        if (type2 == LPAREN) {
-//            if (elementType == IF_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_IF_PARENTHESES);
-//            }
-//            else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_WHILE_PARENTHESES);
-//            }
-//            else if (elementType == SWITCH_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_SWITCH_PARENTHESES);
-//            }
-//            else if (elementType == CATCH_PART) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_CATCH_PARENTHESES);
-//            }
-//        }
 //        if (elementType == IF_STATEMENT) {
 //            if (type1 == RPAREN && cmSettings.BRACE_STYLE == CommonCodeStyleSettings.END_OF_LINE) {
 //                // Always have a single space following the closing paren of an if-condition.
@@ -247,206 +198,6 @@ public class SquirrelSpacingProcessor {
 //                // If the then-part is on the line with the condition put the else-part on the next line.
 //                return Spacing.createSpacing(0, 0, 1, false, 0);
 //            }
-//        }
-//
-//        if (type2 == PARAMETER_LIST && (FUNCTION_DEFINITION.contains(elementType) || elementType == FUNCTION_EXPRESSION)) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_METHOD_PARENTHESES);
-//        }
-//
-//        if (type2 == ARGUMENTS && elementType == CALL_EXPRESSION) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES);
-//        }
-//
-//        //
-//        //Spacing before left braces
-//        //
-//        if (type2 == BLOCK) {
-//            if (elementType == IF_STATEMENT && type1 != ELSE) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_IF_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == IF_STATEMENT && type1 == ELSE) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_ELSE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_WHILE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == FOR_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_FOR_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == TRY_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_TRY_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == CATCH_PART) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_FINALLY_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//        }
-//
-//        if (type2 == LBRACE && elementType == SWITCH_STATEMENT) {
-//            return setBraceSpace(cmSettings.SPACE_BEFORE_SWITCH_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//        }
-//
-//        if (FUNCTION_DEFINITION.contains(elementType) && type2 == FUNCTION_BODY) {
-//            return setBraceSpace(cmSettings.SPACE_BEFORE_METHOD_LBRACE, cmSettings.METHOD_BRACE_STYLE, child1.getTextRange());
-//        }
-//
-//        if (elementType == FUNCTION_EXPRESSION && type2 == FUNCTION_BODY) {
-//            return setBraceSpace(cmSettings.SPACE_BEFORE_METHOD_LBRACE, cmSettings.METHOD_BRACE_STYLE, child1.getTextRange());
-//        }
-//
-//        if (elementType == CLASS_DECLARATION) {
-//            if (type2 == CLASS_BODY) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_CLASS_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            return Spacing.createSpacing(1, 1, 0, false, 0);
-//        }
-//
-//        if (elementType == ENUM_DECLARATION) {
-//            if (cmSettings.BRACE_STYLE == CommonCodeStyleSettings.END_OF_LINE) {
-//                if (type1 == LBRACE && type2 == RBRACE) {
-//                    return noSpace();
-//                }
-//                if (type1 == LBRACE || type2 == RBRACE) {
-//                    return Spacing.createDependentLFSpacing(1, 1, textRangeFollowingMetadata(), false, 0);
-//                }
-//                if (type2 == ENUM_ITEM) {
-//                    return Spacing.createDependentLFSpacing(1, 1, textRangeFollowingMetadata(), false, 0);
-//                }
-//            }
-//            if (type2 == LBRACE) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_CLASS_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//        }
-//
-//        if (type1 == LPAREN || type2 == RPAREN) {
-//            if (elementType == IF_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_IF_PARENTHESES);
-//            }
-//            else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_WHILE_PARENTHESES);
-//            }
-//            else if (elementType == SWITCH_STATEMENT) {
-//                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_SWITCH_PARENTHESES);
-//            }
-//            else if (elementType == CATCH_PART) {
-//                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_CATCH_PARENTHESES);
-//            }
-//            else if (elementType == PARAMETER_LIST) {
-//                final boolean newLineNeeded =
-//                        type1 == LPAREN ? cmSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE : cmSettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE;
-//                if (newLineNeeded || cmSettings.SPACE_WITHIN_METHOD_PARENTHESES) {
-//                    return addSingleSpaceIf(cmSettings.SPACE_WITHIN_METHOD_PARENTHESES, newLineNeeded);
-//                }
-//                return Spacing.createSpacing(0, 0, 0, false, 0);
-//            }
-//            else if (elementType == ARGUMENTS) {
-//                final boolean newLineNeeded =
-//                        type1 == LPAREN ? cmSettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE : cmSettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE;
-//                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES, newLineNeeded);
-//            }
-//            else if (cmSettings.BINARY_OPERATION_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP && elementType == PARENTHESIZED_EXPRESSION) {
-//                final boolean newLineNeeded =
-//                        type1 == LPAREN ? cmSettings.PARENTHESES_EXPRESSION_LPAREN_WRAP : cmSettings.PARENTHESES_EXPRESSION_RPAREN_WRAP;
-//                return addSingleSpaceIf(false, newLineNeeded);
-//            }
-//        }
-//
-//        if (elementType == TERNARY_EXPRESSION) {
-//            if (type2 == QUESTION) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_QUEST);
-//            }
-//            else if (type2 == COLON) {
-//                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_COLON);
-//            }
-//            else if (type1 == QUESTION) {
-//                return addSingleSpaceIf(cmSettings.SPACE_AFTER_QUEST);
-//            }
-//            else if (type1 == COLON) {
-//                return addSingleSpaceIf(cmSettings.SPACE_AFTER_COLON);
-//            }
-//        }
-//
-//        //
-//        // Spacing around assignment operators (=, -=, etc.)
-//        //
-//
-//        if (type1 == EQ || type2 == EQ) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
-//        }
-//
-//        if (type1 == EQ && elementType == VAR_INIT) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
-//        }
-//
-//        if (type2 == VAR_INIT) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
-//        }
-//
-//        //
-//        // Spacing around  logical operators (&&, OR, etc.)
-//        //
-//        if (LOGIC_OPERATORS.contains(type1) || LOGIC_OPERATORS.contains(type2)) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_LOGICAL_OPERATORS);
-//        }
-//        //
-//        // Spacing around  equality operators (==, != etc.)
-//        //
-//        if (type1 == EQUALITY_OPERATOR || type2 == EQUALITY_OPERATOR) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_EQUALITY_OPERATORS);
-//        }
-//        //
-//        // Spacing around  relational operators (<, <= etc.)
-//        //
-//        if (type1 == RELATIONAL_OPERATOR || type2 == RELATIONAL_OPERATOR) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_RELATIONAL_OPERATORS);
-//        }
-//        //
-//        // Spacing around  bitwise operators ( &, |, ^, etc.)
-//        //
-//        if (BITWISE_OPERATORS.contains(type1) || BITWISE_OPERATORS.contains(type2)) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_BITWISE_OPERATORS);
-//        }
-//        //
-//        // Spacing around  additive operators ( +, -, etc.)
-//        //
-//        if ((type1 == ADDITIVE_OPERATOR || type2 == ADDITIVE_OPERATOR) && elementType != PREFIX_EXPRESSION && elementType != UNARY_EXPRESSION) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_ADDITIVE_OPERATORS);
-//        }
-//        //
-//        // Spacing around  multiplicative operators ( *, /, %, etc.)
-//        //
-//        if (type1 == MULTIPLICATIVE_OPERATOR || type2 == MULTIPLICATIVE_OPERATOR) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
-//        }
-//        //
-//        // Spacing between successive unary operators ( -, + )
-//        //
-//        if (type1 == UNARY_OPERATOR && type2 == UNARY_EXPRESSION) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
-//        }
-//        //
-//        // Spacing around  unary operators ( NOT, ++, etc.)
-//        //
-//        if (type1 == PREFIX_OPERATOR || type2 == PREFIX_OPERATOR) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
-//        }
-//        //
-//        // Spacing around  shift operators ( <<, >>, >>>, etc.)
-//        //
-//        if (type1 == SHIFT_OPERATOR || type2 == SHIFT_OPERATOR) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AROUND_SHIFT_OPERATORS);
-//        }
-//
-//        //
-//        //Spacing before keyword (else, catch, etc)
-//        //
-//        if (type2 == ELSE) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_ELSE_KEYWORD, cmSettings.ELSE_ON_NEW_LINE);
-//        }
-//        if (type2 == WHILE) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_WHILE_KEYWORD, cmSettings.WHILE_ON_NEW_LINE);
-//        }
-//        if (type2 == CATCH_PART) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_CATCH_KEYWORD, cmSettings.CATCH_ON_NEW_LINE);
 //        }
 //
 //        //
@@ -492,12 +243,6 @@ public class SquirrelSpacingProcessor {
 //            }
 //        }
 //
-//        if (type1 == LBRACKET && type2 == RBRACKET) {
-//            return noSpace();
-//        }
-//        if (type1 == COMMA && (elementType == PARAMETER_LIST || elementType == ARGUMENT_LIST)) {
-//            return addSingleSpaceIf(cmSettings.SPACE_AFTER_COMMA);
-//        }
 //
 //        if (type1 == COMMA) {
 //            if (type2 == RBRACKET) {
@@ -505,10 +250,6 @@ public class SquirrelSpacingProcessor {
 //                return Spacing.createDependentLFSpacing(0, 0, range, cmSettings.KEEP_LINE_BREAKS, cmSettings.KEEP_BLANK_LINES_IN_CODE);
 //            }
 //            return addSingleSpaceIf(cmSettings.SPACE_AFTER_COMMA && type2 != RBRACE && type2 != RBRACKET);
-//        }
-//
-//        if (type2 == COMMA) {
-//            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_COMMA);
 //        }
 //
 //        //todo: customize in settings
@@ -593,21 +334,17 @@ public class SquirrelSpacingProcessor {
         if (type2 == ARGUMENTS && elementType == CALL_EXPRESSION) {
             return addSingleSpaceIf(cmSettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES);
         }
-
-        if (type2 == PARAMETERS && FUNCTION_DEFINITION.contains(elementType)) {
+        else if (type2 == PARAMETERS && FUNCTION_DEFINITION.contains(elementType)) {
             return addSingleSpaceIf(cmSettings.SPACE_BEFORE_METHOD_PARENTHESES);
         }
-
-        if (type2 == PARAMETERS && elementType == FUNCTION_EXPRESSION) {
+        else if (type2 == PARAMETERS && elementType == FUNCTION_EXPRESSION) {
             return addSingleSpaceIf(sqSettings.SPACE_BEFORE_FUNCTION_EXPRESSION_PARENTHESES);
         }
-
         // Always remove spaces after lambda @ sign
-        if (type2 == PARAMETERS && elementType == LAMBDA_FUNCTION_EXPRESSION) {
+        else if (type2 == PARAMETERS && elementType == LAMBDA_FUNCTION_EXPRESSION) {
             return noSpace();
         }
-
-        if (type2 == LPAREN) {
+        else if (type2 == LPAREN) {
             if (elementType == IF_STATEMENT) {
                 return addSingleSpaceIf(cmSettings.SPACE_BEFORE_IF_PARENTHESES);
             }
@@ -632,126 +369,272 @@ public class SquirrelSpacingProcessor {
 
     @Nullable
     private Spacing setSpacingAroundOperators(IElementType type1, IElementType type2, IElementType elementType) {
-        if (elementType == CONST_DECLARATION || elementType == ENUM_ITEM || elementType == DEFAULT_PARAMETER || elementType == TABLE_ITEM || elementType == CLASS_MEMBER) {
-            if (type1 == EQ || type2 == EQ) {
-                return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
-            }
-        }
-        if ((type1 == EQ && elementType == VAR_INIT) || type2 == VAR_INIT) {
+        if (Arrays.asList(CONST_DECLARATION, ENUM_ITEM, DEFAULT_PARAMETER, TABLE_ITEM, CLASS_MEMBER).contains(elementType) &&
+                (type1 == EQ || type2 == EQ)) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
         }
-        if ((type1 == ASSIGNMENT_OPERATOR || type2 == ASSIGNMENT_OPERATOR) && elementType == ASSIGN_EXPRESSION) {
+        else if ((type1 == EQ && elementType == VAR_INIT) || type2 == VAR_INIT) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
         }
-
-        if (LOGIC_OPERATORS.contains(type1) || LOGIC_OPERATORS.contains(type2)) {
+        else if ((type1 == ASSIGNMENT_OPERATOR || type2 == ASSIGNMENT_OPERATOR) && elementType == ASSIGN_EXPRESSION) {
+            return addSingleSpaceIf(cmSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+        }
+        else if (LOGIC_OPERATORS.contains(type1) || LOGIC_OPERATORS.contains(type2)) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_LOGICAL_OPERATORS);
         }
-
-        if (type1 == EQUALITY_OPERATOR || type2 == EQUALITY_OPERATOR) {
+        else if (type1 == EQUALITY_OPERATOR || type2 == EQUALITY_OPERATOR) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_EQUALITY_OPERATORS);
         }
-
-        if (type1 == RELATIONAL_OPERATOR || type2 == RELATIONAL_OPERATOR) {
+        else if (type1 == RELATIONAL_OPERATOR || type2 == RELATIONAL_OPERATOR) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_RELATIONAL_OPERATORS);
         }
-
-        if (BITWISE_OPERATORS.contains(type1) || BITWISE_OPERATORS.contains(type2)) {
+        else if (BITWISE_OPERATORS.contains(type1) || BITWISE_OPERATORS.contains(type2)) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_BITWISE_OPERATORS);
         }
-
-        if ((type1 == ADDITIVE_OPERATOR || type2 == ADDITIVE_OPERATOR) && elementType != PREFIX_EXPRESSION && elementType != UNARY_EXPRESSION) {
+        else if ((type1 == ADDITIVE_OPERATOR || type2 == ADDITIVE_OPERATOR) && elementType != PREFIX_EXPRESSION && elementType != UNARY_EXPRESSION) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_ADDITIVE_OPERATORS);
         }
-
-        if (type1 == MULTIPLICATIVE_OPERATOR || type2 == MULTIPLICATIVE_OPERATOR) {
+        else if (type1 == MULTIPLICATIVE_OPERATOR || type2 == MULTIPLICATIVE_OPERATOR) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
         }
-
-        if (type1 == UNARY_OPERATOR && type2 == UNARY_EXPRESSION) {
-            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
-        }
-
-        if (type1 == PREFIX_OPERATOR || type2 == PREFIX_OPERATOR) {
-            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
-        }
-
-        if (type1 == SHIFT_OPERATOR || type2 == SHIFT_OPERATOR) {
+        else if (type1 == SHIFT_OPERATOR || type2 == SHIFT_OPERATOR) {
             return addSingleSpaceIf(cmSettings.SPACE_AROUND_SHIFT_OPERATORS);
         }
-
+        else if (type1 == PREFIX_OPERATOR || type2 == PREFIX_OPERATOR) {
+            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
+        }
+        else if (type1 == UNARY_OPERATOR) {
+            return addSingleSpaceIf(cmSettings.SPACE_AROUND_UNARY_OPERATOR);
+        }
         return null;
     }
 
     @Nullable
     private Spacing setSpacingBeforeLeftBrace(IElementType type1, IElementType type2, IElementType elementType, IElementType parentType, final Block child1, final Block child2) {
-        // TODO: tests with wrap
+        // TODO: tests with wrap (child1 range should be probably changed to something else)
         // TODO: tests with brace styles
         if ((elementType == CLASS_DECLARATION || elementType == CLASS_EXPRESSION) && type2 == CLASS_BODY) {
             return setBraceSpace(cmSettings.SPACE_BEFORE_CLASS_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
         }
-
-        if (elementType == ENUM_DECLARATION && type2 == LBRACE) {
+        else if (elementType == ENUM_DECLARATION && type2 == LBRACE) {
             return setBraceSpace(cmSettings.SPACE_BEFORE_CLASS_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
         }
-
-        if ((FUNCTION_DEFINITION.contains(elementType) || elementType == FUNCTION_EXPRESSION) && type2 == FUNCTION_BODY) {
+        else if ((FUNCTION_DEFINITION.contains(elementType) || elementType == FUNCTION_EXPRESSION) && type2 == FUNCTION_BODY) {
             return setBraceSpace(cmSettings.SPACE_BEFORE_METHOD_LBRACE, cmSettings.METHOD_BRACE_STYLE, child1.getTextRange());
         }
-
-//        if (type2 == STATEMENT) {
-//            if (elementType == IF_STATEMENT && type1 == RBRACE) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_IF_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == IF_STATEMENT && type1 == ELSE) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_ELSE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_WHILE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == FOR_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_FOR_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == TRY_STATEMENT) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_TRY_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//            else if (elementType == CATCH_PART) {
-//                return setBraceSpace(cmSettings.SPACE_BEFORE_FINALLY_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
-//            }
-//        }
-//
-
-
+        else if (elementType == LAMBDA_FUNCTION_EXPRESSION && type1 == PARAMETERS) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_METHOD_LBRACE, cmSettings.METHOD_BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == IF_STATEMENT && type1 == RPAREN) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_IF_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == IF_STATEMENT && type1 == ELSE) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_ELSE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == SWITCH_STATEMENT && type1 == RPAREN) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_SWITCH_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == WHILE_STATEMENT && type1 == RPAREN) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_WHILE_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == DO_WHILE_STATEMENT && type1 == DO) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_DO_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == FOR_STATEMENT && type1 == RPAREN) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_FOR_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == FOREACH_STATEMENT && type1 == RPAREN) {
+            return setBraceSpace(sqSettings.SPACE_BEFORE_FOREACH_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == TRY_STATEMENT && type1 == TRY) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_TRY_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
+        else if (elementType == CATCH_PART && type1 == RPAREN) {
+            return setBraceSpace(cmSettings.SPACE_BEFORE_CATCH_LBRACE, cmSettings.BRACE_STYLE, child1.getTextRange());
+        }
         return null;
     }
 
     @Nullable
     private Spacing setSpacingBeforeKeywords(IElementType type1, IElementType type2, IElementType elementType) {
+        if (type2 == ELSE) {
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_ELSE_KEYWORD, cmSettings.ELSE_ON_NEW_LINE);
+        }
+        else if (type2 == WHILE) {
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_WHILE_KEYWORD, cmSettings.WHILE_ON_NEW_LINE);
+        }
+        else if (type2 == CATCH_PART) {
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_CATCH_KEYWORD, cmSettings.CATCH_ON_NEW_LINE);
+        }
         return null;
     }
 
     @Nullable
     private Spacing setSpacingWithin(IElementType type1, IElementType type2, IElementType elementType) {
+        if (type1 == LBRACKET || type2 == RBRACKET) {
+            if (type1 == LBRACKET && type2 == RBRACKET) {
+                return addSingleSpaceIf(sqSettings.SPACE_WITHIN_EMPTY_BRACKETS);
+            }
+            else {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_BRACKETS);
+            }
+        }
+        else if (type1 == LBRACE || type2 == RBRACE) {
+            if (type1 == LBRACE && type2 == RBRACE) {
+                return addSingleSpaceIf(sqSettings.SPACE_WITHIN_EMPTY_BRACES);
+            }
+            else {
+                if (cmSettings.SPACE_WITHIN_BRACES) {
+                    return Spacing.createSpacing(1, 1, 0, cmSettings.KEEP_LINE_BREAKS, cmSettings.KEEP_BLANK_LINES_IN_CODE);
+                }
+                else {
+                    // We should keep an optional spaces in it is already there.
+                    return Spacing.createSpacing(0, 1, 0, cmSettings.KEEP_LINE_BREAKS, cmSettings.KEEP_BLANK_LINES_IN_CODE);
+                }
+            }
+        }
+        else if (type1 == LPAREN || type2 == RPAREN) {
+            if (elementType == IF_STATEMENT) {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_IF_PARENTHESES);
+            }
+            else if (elementType == FOR_STATEMENT) {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_FOR_PARENTHESES);
+            }
+            else if (elementType == FOREACH_STATEMENT) {
+                return addSingleSpaceIf(sqSettings.SPACE_WITHIN_FOREACH_PARENTHESES);
+            }
+            else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_WHILE_PARENTHESES);
+            }
+            else if (elementType == SWITCH_STATEMENT) {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_SWITCH_PARENTHESES);
+            }
+            else if (elementType == CATCH_PART) {
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_CATCH_PARENTHESES);
+            }
+            else if (elementType == PARAMETERS) {
+                if (type1 == LPAREN && type2 == RPAREN) {
+                    return addSingleSpaceIf(cmSettings.SPACE_WITHIN_EMPTY_METHOD_PARENTHESES);
+                }
+                else {
+                    final boolean newLineNeeded = type1 == LPAREN ? cmSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE : cmSettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE;
+
+                    if (newLineNeeded || cmSettings.SPACE_WITHIN_METHOD_PARENTHESES) {
+                        return addSingleSpaceIf(cmSettings.SPACE_WITHIN_METHOD_PARENTHESES, newLineNeeded);
+                    }
+                    return Spacing.createSpacing(0, 0, 0, false, 0);
+                }
+            }
+            else if (elementType == ARGUMENTS) {
+                if (type1 == LPAREN && type2 == RPAREN) {
+                    return addSingleSpaceIf(cmSettings.SPACE_WITHIN_EMPTY_METHOD_CALL_PARENTHESES);
+                }
+                else {
+                    final boolean newLineNeeded =
+                            type1 == LPAREN ? cmSettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE : cmSettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE;
+
+                    return addSingleSpaceIf(cmSettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES, newLineNeeded);
+                }
+            }
+            else if (elementType == PARENTHESIZED_EXPRESSION) {
+                final boolean newLineNeeded =
+                        type1 == LPAREN ? cmSettings.PARENTHESES_EXPRESSION_LPAREN_WRAP : cmSettings.PARENTHESES_EXPRESSION_RPAREN_WRAP;
+                return addSingleSpaceIf(cmSettings.SPACE_WITHIN_PARENTHESES, newLineNeeded);
+            }
+        }
         return null;
     }
 
     @Nullable
     private Spacing setSpacingInTernaryOperator(IElementType type1, IElementType type2, IElementType elementType) {
+        if (elementType == TERNARY_EXPRESSION) {
+            if (type2 == QUESTION) {
+                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_QUEST);
+            }
+            else if (type2 == COLON) {
+                return addSingleSpaceIf(cmSettings.SPACE_BEFORE_COLON);
+            }
+            else if (type1 == QUESTION) {
+                return addSingleSpaceIf(cmSettings.SPACE_AFTER_QUEST);
+            }
+            else if (type1 == COLON) {
+                return addSingleSpaceIf(cmSettings.SPACE_AFTER_COLON);
+            }
+        }
         return null;
     }
 
     @Nullable
-    private Spacing setSpacingOther(IElementType type1, IElementType type2, IElementType elementType) {
+    private Spacing setSpacingOther(IElementType type1, IElementType type2, IElementType elementType, IElementType parentType) {
+        // COMMAS
+        if (type2 == COMMA) {
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_COMMA);
+        }
+        else if (type1 == COMMA) {
+            return addSingleSpaceIf(cmSettings.SPACE_AFTER_COMMA);
+        }
+        // SEMICOLONS
+        else if ((elementType == FOR_LOOP_PARTS || elementType == CLASS_MEMBERS) && type2 == SEMICOLON) {
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_SEMICOLON);
+        }
+        else if ((elementType == FOR_LOOP_PARTS || elementType == CLASS_MEMBERS) && type1 == SEMICOLON) {
+            return addSingleSpaceIf(cmSettings.SPACE_AFTER_SEMICOLON);
+        }
+        // Remove whitespace around regular semicolons (except new lines)
+        else if (type1 == SEMICOLON || type2 == SEMICOLON) {
+            return Spacing.createSpacing(0, 0, 0, true, cmSettings.KEEP_BLANK_LINES_IN_CODE);
+        }
         // Always separate table items with no delimiter
-        if (type1 == TABLE_ITEM && type2 == TABLE_ITEM) {
+        else if (type1 == TABLE_ITEM && type2 == TABLE_ITEM) {
             return oneSpace();
         }
-        if (type1 == CLASS_MEMBER && type2 == CLASS_MEMBER) {
+        else if (type1 == CLASS_MEMBER && type2 == CLASS_MEMBER) {
             return oneSpace();
         }
+        else if ((type1 == RETURN || type1 == YIELD || type1 == THROW) && !SEMICOLONS.contains(type2)) {
+            return addSingleSpaceIf(true);
+        }
+
         return null;
     }
 
+    @Nullable
+    private Spacing setSpacingMultiline(IElementType type1, IElementType type2, IElementType elementType, IElementType parentType) {
+        if (!COMMENTS.contains(type2) && parentType == BLOCK) {
+            return addLineBreak();
+        }
+        else if (elementType == STATEMENT && (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
+            return Spacing.createSpacing(0, 0, 1, false, cmSettings.KEEP_BLANK_LINES_IN_CODE);
+        }
+        // No blank line before closing brace in switch statement.
+        if (type2 == RBRACE && (type1 == SWITCH_CASE || type1 == DEFAULT_CASE)) {
+            return Spacing.createSpacing(0, 0, 1, false, 0);
+        }
+        // No blank line before first statement of a case.
+        if (type1 == COLON && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
+            return Spacing.createSpacing(0, 0, 1, false, 0);
+        }
+        // No blank line before first case of a switch.
+        if (elementType == SWITCH_STATEMENT && type1 == LBRACE) {
+            return Spacing.createSpacing(0, 0, 1, false, 0);
+        }
+
+
+        if (type1 == STATEMENT || type2 == STATEMENT) {
+            return addLineBreak();
+        }
+
+        if (type1 == CLASS_MEMBERS || type2 == CLASS_MEMBERS) {
+            if (type1 == MULTI_LINE_COMMENT) {
+                return addSingleSpaceIf(true, false);
+            }
+            else {
+                return addSingleSpaceIf(false, true);
+            }
+        }
+
+        return null;
+    }
 
 
 

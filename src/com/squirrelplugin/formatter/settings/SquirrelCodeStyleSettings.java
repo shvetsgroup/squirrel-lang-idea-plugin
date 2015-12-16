@@ -12,4 +12,6 @@ public class SquirrelCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean SPACE_BEFORE_FOREACH_PARENTHESES = true;
     public boolean SPACE_BEFORE_FOREACH_LBRACE = true;
     public boolean SPACE_WITHIN_FOREACH_PARENTHESES = false;
+    public boolean SPACE_WITHIN_EMPTY_BRACES = false;
+    public boolean SPACE_WITHIN_EMPTY_BRACKETS = false;
 }

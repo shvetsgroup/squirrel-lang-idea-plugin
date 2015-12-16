@@ -1,1 +1,6 @@
-local a = class{ a=3d=40k=3 }
+local i = 0;
+do
+    i++
+while(i<4)
+
+print(i);
