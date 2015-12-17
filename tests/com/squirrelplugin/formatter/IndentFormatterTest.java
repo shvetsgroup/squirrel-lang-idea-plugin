@@ -1,8 +1,6 @@
 package com.squirrelplugin.formatter;
 
-import com.intellij.psi.formatter.FormatterTestCase;
-
-public class IndentFormatterTest extends FormatterTestCase {
+public class IndentFormatterTest extends AbstractSquirrelFormatterTest {
     @Override
     protected String getTestDataPath() {
         return "../squirrel-lang-idea-plugin/testData";
@@ -13,7 +11,7 @@ public class IndentFormatterTest extends FormatterTestCase {
     protected String getFileExtension() { return "nut"; }
 
     public void testFormatterDefaultSettings() throws Exception {
-        defaultSettings();
+        setDefaultSettings();
         doTest("indent", "indent_default");
     }
 }

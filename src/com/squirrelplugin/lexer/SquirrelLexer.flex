@@ -1,10 +1,11 @@
-package com.squirrelplugin;
+package com.squirrelplugin.lexer;
 import java.util.*;
 import com.intellij.lexer.*;
+import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import static com.squirrelplugin.SquirrelTokenTypes.*;
-import static com.squirrelplugin.SquirrelParserDefinition.*;
-import com.intellij.psi.TokenType;
+import static com.squirrelplugin.SquirrelTokenTypesSets.*;
+import static com.squirrelplugin.lexer.SquirrelLexer.*;
 
 %%
 
@@ -35,6 +36,14 @@ import com.intellij.psi.TokenType;
         yybegin(state);
     }
 
+    private void pushStateUnless(int state, int... unlessNotIn) {
+        for (int i = 0; i < unlessNotIn.length; i++) {
+            if (unlessNotIn[i] == yystate()) return;
+        }
+        myStateStack.push(new State(yystate()));
+        yybegin(state);
+    }
+
     private void popState() {
         if (!myStateStack.empty()) {
             State state = myStateStack.pop();
@@ -54,8 +63,14 @@ import com.intellij.psi.TokenType;
   myStateStack.clear();
 %eof}
 
-LINE_COMMENT=("//"|#)[^\r\n]*
-MULTI_LINE_COMMENT="/"\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+"/")
+SINGLE_LINE_COMMENT=("//"|#)[^\r\n]*
+
+MULTI_LINE_DEGENERATE_COMMENT = "/*" "*"+ "/"
+MULTI_LINE_COMMENT_START      = "/*"
+MULTI_LINE_DOC_COMMENT_START  = "/**"
+MULTI_LINE_COMMENT_END        = "*/"
+
+
 IDENTIFIER=[a-zA-Z_]+[a-zA-Z_0-9]*
 INT=((0[1-9][0-7]*)|(0x[0-9a-fA-F]*)|('[:letter:]')|(0|([1-9][0-9]*)))
 FLOAT=((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[0-9]+))
@@ -64,14 +79,42 @@ NL=\r|\n|\r\n
 WS=[ \t\f]
 ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
-%state SEE_IF_NEXT_IS_NL, MAYBE_SET_SYNTHETIC_SEMICOLON, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES, DO_STATEMENT, TRY_STATEMENT, BRACES
+// SS means SYNTHETIC_SEMICOLON
+%state MULTI_LINE_COMMENT_STATE, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES
 
 %%
-<YYINITIAL, PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES, DO_STATEMENT, TRY_STATEMENT, BRACES> {
+
+<YYINITIAL, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES> {
+  {SINGLE_LINE_COMMENT} { return SINGLE_LINE_COMMENT; }
+
+  // multi-line comments
+  // without this rule /*****/ is parsed as doc comment and /**/ is parsed as not closed doc comment
+  {MULTI_LINE_DEGENERATE_COMMENT} { return MULTI_LINE_COMMENT; }
+  // next rules return temporary IElementType's that are replaced with SquirrelTokenTypesSets#MULTI_LINE_COMMENT or
+  // SquirrelTokenTypesSets#MULTI_LINE_DOC_COMMENT in com.squirrelplugin.lexer.SquirrelLexer
+  {MULTI_LINE_DOC_COMMENT_START}  { pushState(MULTI_LINE_COMMENT_STATE); return MULTI_LINE_DOC_COMMENT_START;                                                             }
+  {MULTI_LINE_COMMENT_START}      { pushState(MULTI_LINE_COMMENT_STATE); return MULTI_LINE_COMMENT_START;                                                                 }
+}
+
+<MULTI_LINE_COMMENT_STATE> {
+{MULTI_LINE_COMMENT_START} { pushState(MULTI_LINE_COMMENT_STATE); return MULTI_LINE_COMMENT_BODY; }
+[^]                        { return MULTI_LINE_COMMENT_BODY; }
+{MULTI_LINE_COMMENT_END}   { popState(); return yystate() == MULTI_LINE_COMMENT_STATE ? MULTI_LINE_COMMENT_BODY : MULTI_LINE_COMMENT_END; }
+}
+
+<YYINITIAL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES> {
   {WS}+                { return WS; }
   {NL}+                { return NL; }
 
-  "{"                  { pushState(BRACES); return LBRACE; }
+  "{"                  {
+
+if (yystate() == PREVENT_SS_UNTIL_BRACE) {
+    popState();
+}
+pushState(BRACES);
+return LBRACE;
+
+                       }
   "}"                  { popState(); return RBRACE; }
 
   "["                  { return LBRACKET; }
@@ -82,7 +125,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
                         myLeftParenCount--;
                         if (myLeftParenCount == 0) {
-                            if (yystate() == PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES) {
+                            if (yystate() == PREVENT_SS_AFTER_PARENTHESES) {
                                 popState();
                             } else {
                                 pushState(SEE_IF_NEXT_IS_NL);
@@ -134,11 +177,11 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "@"                  { return AT; }
   "."                  { return DOT; }
   "const"              { return CONST; }
-  "enum"               { return ENUM; }
+  "enum"               { pushState(PREVENT_SS_UNTIL_BRACE); return ENUM; }
   "local"              { return LOCAL; }
-  "function"           { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FUNCTION; }
+  "function"           { pushState(PREVENT_SS_AFTER_PARENTHESES); return FUNCTION; }
   "constructor"        { return CONSTRUCTOR; } // TODO: CAN ALSO BE A STATEMENT WITH PARENTHESES
-  "class"              { return CLASS; }
+  "class"              { pushState(PREVENT_SS_UNTIL_BRACE); return CLASS; }
   "extends"            { return EXTENDS; }
   "static"             { return STATIC; }
   "break"              { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return BREAK; }
@@ -146,8 +189,8 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   "return"             { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return RETURN; }
   "yield"              { return YIELD; }
   "throw"              { return THROW; }
-  "for"                { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FOR; }
-  "foreach"            { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return FOREACH; }
+  "for"                { pushState(PREVENT_SS_AFTER_PARENTHESES); return FOR; }
+  "foreach"            { pushState(PREVENT_SS_AFTER_PARENTHESES); return FOREACH; }
   "in"                 { return IN; }
 
   // We need to track state of these two in order to place correct synthetic semicolons.
@@ -165,14 +208,14 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
   // 1) syn_semicolon will be placed after print() which will break BNF rule causing an error.
   // 2) syn_semicolon will be placed after "while (b)", which will produce incorrect PSI.
   //
-  // So, to fix first one, we do special treatment inside MAYBE_SET_SYNTHETIC_SEMICOLON for while keyword.
+  // So, to fix first one, we do special treatment inside MAYBE_SET_SS for while keyword.
   // To fix second, we do some checks in the code of "while" keyword (below).
 
   "do"                 { pushState(DO_STATEMENT); return DO; }
   "while"              {
 
 if (yystate() != DO_STATEMENT) {
-  pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES);
+  pushState(PREVENT_SS_AFTER_PARENTHESES);
 }
 else {
   popState();
@@ -183,14 +226,14 @@ return WHILE;
 
   // TRY has the problem 1 of DO, so we need to track it's state as well.
   "try"                { pushState(TRY_STATEMENT); return TRY; }
-  "catch"              { popState(); pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return CATCH; }
+  "catch"              { popState(); pushState(PREVENT_SS_AFTER_PARENTHESES); return CATCH; }
 
   // You would expect same type of problems with IF, but due to strange implementation of Squirrel, where it requires
   // IFs to have semicolons after a statement. This might change in future.
-  "if"                 { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return IF; }
+  "if"                 { pushState(PREVENT_SS_AFTER_PARENTHESES); return IF; }
   "else"               { return ELSE; }
 
-  "switch"             { pushState(PREVENT_SYNTHETIC_SEMICOLON_AFTER_PARENTHESES); return SWITCH; }
+  "switch"             { pushState(PREVENT_SS_AFTER_PARENTHESES); return SWITCH; }
   "case"               { return CASE; }
   "default"            { return DEFAULT; }
   "typeof"             { return TYPEOF; }
@@ -202,9 +245,7 @@ return WHILE;
   "false"              { return FALSE; }
   "null"               { return NULL; }
 
-  {LINE_COMMENT}       { return LINE_COMMENT; }
-  {MULTI_LINE_COMMENT} { return MULTI_LINE_COMMENT; }
-  {IDENTIFIER}         { pushState(SEE_IF_NEXT_IS_NL); return IDENTIFIER; }
+  {IDENTIFIER}         { pushStateUnless(SEE_IF_NEXT_IS_NL, PREVENT_SS_UNTIL_BRACE, PREVENT_SS_AFTER_PARENTHESES); return IDENTIFIER; }
   {INT}                { pushState(SEE_IF_NEXT_IS_NL); return INT; }
   {FLOAT}              { pushState(SEE_IF_NEXT_IS_NL); return FLOAT; }
   {STRING}             { pushState(SEE_IF_NEXT_IS_NL); return STRING; }
@@ -215,24 +256,18 @@ return WHILE;
 <MAYBE_TERMINATE_KEYWORD_WITH_NL> {
 {WS}+                  { return WS; }
 {NL}+                  { popState(); yypushback(yylength()); return SEMICOLON_SYNTHETIC; }
-{LINE_COMMENT}         { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
 .                      { popState(); yypushback(yylength());  }
 }
 
 <SEE_IF_NEXT_IS_NL> {
 {WS}+                  { return WS; }
-{NL}+                  { popState(); pushState(MAYBE_SET_SYNTHETIC_SEMICOLON); return NL; }
-{LINE_COMMENT}         { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
+{NL}+                  { popState(); pushState(MAYBE_SET_SS); return NL; }
 .                      { popState(); yypushback(yylength());  }
 }
 
-<MAYBE_SET_SYNTHETIC_SEMICOLON> {
+<MAYBE_SET_SS> {
 {WS}+                  { return WS; }
 {NL}+                  { return NL; }
-{LINE_COMMENT}         { return LINE_COMMENT; }
-{MULTI_LINE_COMMENT}   { return MULTI_LINE_COMMENT; }
 
 // binary operator should continue expression
 "instanceof"           { popState(); yypushback(yylength()); }

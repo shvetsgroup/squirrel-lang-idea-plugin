@@ -1,6 +1,12 @@
-local i = 0;
-do
-    i++
-while(i<4)
+class a {
+    foo = 2;
+    function a() {
+        local a = 3;
+    }
+}
 
-print(i);
+a.a()
+
+class a {
+    
+}

@@ -8,6 +8,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.tree.IElementType;
+import com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettings;
 import com.squirrelplugin.util.UsefulPsiTreeUtil;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
@@ -16,14 +17,7 @@ import static com.squirrelplugin.SquirrelTokenTypes.*;
 import static com.squirrelplugin.SquirrelTokenTypesSets.*;
 
 public class SquirrelIndentProcessor {
-
-    private final CommonCodeStyleSettings settings;
-
-    public SquirrelIndentProcessor(CommonCodeStyleSettings settings) {
-        this.settings = settings;
-    }
-
-    public Indent getChildIndent(final ASTNode node) {
+    public static Indent getChildIndent(final ASTNode node, CommonCodeStyleSettings cmSettings, SquirrelCodeStyleSettings sqSettings) {
         final IElementType elementType = node.getElementType();
         final ASTNode prevSibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(node);
         final IElementType prevSiblingType = prevSibling == null ? null : prevSibling.getElementType();
@@ -32,22 +26,44 @@ public class SquirrelIndentProcessor {
         final ASTNode superParent = parent == null ? null : parent.getTreeParent();
         final IElementType superParentType = superParent == null ? null : superParent.getElementType();
 
-        final int braceStyle = superParentType == FUNCTION_BODY ? settings.METHOD_BRACE_STYLE : settings.BRACE_STYLE;
+        final int braceStyle = superParentType == FUNCTION_BODY ? cmSettings.METHOD_BRACE_STYLE : cmSettings.BRACE_STYLE;
 
         // TODO: tables
+
+        // COMMENTS
+
+        if (parent == null || parent.getTreeParent() == null) {
+            return Indent.getNoneIndent();
+        }
+
+        if (elementType == MULTI_LINE_COMMENT_BODY) {
+            return Indent.getContinuationIndent();
+        }
+        if (elementType == DOC_COMMENT_LEADING_ASTERISK || elementType == MULTI_LINE_COMMENT_END) {
+            return Indent.getSpaceIndent(1, true);
+        }
+
+        if (cmSettings.KEEP_FIRST_COLUMN_COMMENT && (elementType == SINGLE_LINE_COMMENT || elementType == MULTI_LINE_COMMENT)) {
+            final ASTNode previousNode = node.getTreePrev();
+            if (previousNode != null && previousNode.getElementType() == WHITE_SPACE && previousNode.getText().endsWith("\n")) {
+                return Indent.getAbsoluteNoneIndent();
+            }
+        }
 
         if (COMMENTS.contains(elementType) && prevSiblingType == LBRACE && parentType == CLASS_BODY) {
             return Indent.getNormalIndent();
         }
 
-        if (elementType == SEMICOLON && FormatterUtil.isPrecededBy(node, LINE_COMMENT, WHITE_SPACES)) {
+        if (elementType == SEMICOLON && FormatterUtil.isPrecededBy(node, SINGLE_LINE_COMMENT, WHITE_SPACES)) {
             return Indent.getContinuationIndent();
         }
+
+        // BRACES & BLOCKS
 
         if (elementType == LBRACE || elementType == RBRACE) {
             switch (braceStyle) {
                 case CommonCodeStyleSettings.END_OF_LINE:
-                    if (elementType == LBRACE && FormatterUtil.isPrecededBy(parent, LINE_COMMENT, WHITE_SPACES)) {
+                    if (elementType == LBRACE && FormatterUtil.isPrecededBy(parent, SINGLE_LINE_COMMENT, WHITE_SPACES)) {
                         // Use Nystrom style rather than Allman.
                         return Indent.getContinuationIndent();
                     } // FALL THROUGH

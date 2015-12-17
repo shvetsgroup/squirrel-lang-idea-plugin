@@ -65,7 +65,7 @@
     AT                   =  '@'
     DOT                  =  '.'
 
-    LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
+    SINGLE_LINE_COMMENT = "regexp:(//|#)[^\r\n]*"
     MULTI_LINE_COMMENT = "regexp:/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*(\*+/)"
 
     IDENTIFIER = "regexp:[a-zA-Z_]+[a-zA-Z_0-9]*"

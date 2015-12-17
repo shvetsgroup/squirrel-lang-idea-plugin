@@ -5,7 +5,7 @@ const s="s" ;
 
   ;
 local a,a=@ (a,b)a+b; ;
-a=class{a=2;a=2a=2}
+a=class{</a=3,a=3/>a=2;a=2a=2}
 enum a{a=2}
 class a{function a ( ){throw(1)}}
 if( 1 ){ return }else{}

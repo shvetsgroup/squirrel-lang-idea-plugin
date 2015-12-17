@@ -3,6 +3,7 @@ package com.squirrelplugin.formatter;
 import com.intellij.formatting.*;
 import com.intellij.formatting.templateLanguages.BlockWithParent;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.TokenType;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
@@ -24,42 +25,43 @@ import static com.squirrelplugin.SquirrelTokenTypes.*;
 public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
     public static final List<SquirrelBlock> Squirrel_EMPTY = Collections.emptyList();
 
-    private static final TokenSet STATEMENTS_WITH_OPTIONAL_BRACES = TokenSet.create(IF, DO, WHILE, FOR, FOREACH, FUNCTION, CLASS);
+    private static final TokenSet STATEMENTS_WITH_OPTIONAL_BRACES = TokenSet.create(
+            FOR_STATEMENT,
+            FOREACH_STATEMENT,
+            WHILE_STATEMENT,
+            DO_WHILE_STATEMENT,
+            IF_STATEMENT,
+            TRY_STATEMENT,
+            FUNCTION_DECLARATION);
 
-    private static final TokenSet LAST_TOKENS_IN_SWITCH_CASE = TokenSet.create(BREAK_STATEMENT, CONTINUE_STATEMENT, RETURN_STATEMENT);
+    private static final TokenSet LAST_TOKENS_IN_SWITCH_CASE = TokenSet.create(BREAK_STATEMENT, CONTINUE_STATEMENT,
+            RETURN_STATEMENT);
 
-    private final SquirrelIndentProcessor myIndentProcessor;
-    private SpacingBuilder spacingBuilder; // TODO: Remove
-    private final SquirrelSpacingProcessor mySpacingProcessor;
-    private final SquirrelWrappingProcessor myWrappingProcessor;
-    private final SquirrelAlignmentProcessor myAlignmentProcessor;
-    private final CodeStyleSettings mySettings;
-    private Wrap myChildWrap = null;
-    private final Indent myIndent;
+
+    private ASTNode myNode;
+    private CodeStyleSettings mySettings;
+    private CommonCodeStyleSettings cmSettings;
+    private SquirrelCodeStyleSettings sqSettings;
+
     private BlockWithParent myParent;
     private List<SquirrelBlock> mySubSquirrelBlocks;
 
     protected SquirrelBlock(ASTNode node, Wrap wrap, Alignment alignment, CodeStyleSettings settings) {
         super(node, wrap, alignment);
+        myNode = node;
         mySettings = settings;
-        CommonCodeStyleSettings cmSettings = mySettings.getCommonSettings(SquirrelLanguage.INSTANCE);
-        SquirrelCodeStyleSettings sqSettings = mySettings.getCustomSettings(SquirrelCodeStyleSettings.class);
-
-        myIndentProcessor = new SquirrelIndentProcessor(cmSettings);
-        mySpacingProcessor = new SquirrelSpacingProcessor(node, cmSettings, sqSettings);
-        myWrappingProcessor = new SquirrelWrappingProcessor(node, cmSettings);
-        myAlignmentProcessor = new SquirrelAlignmentProcessor(node, cmSettings);
-        myIndent = myIndentProcessor.getChildIndent(myNode);
+        cmSettings = settings.getCommonSettings(SquirrelLanguage.INSTANCE);
+        sqSettings = settings.getCustomSettings(SquirrelCodeStyleSettings.class);
     }
 
     @Override
     public Indent getIndent() {
-        return myIndent;
+        return SquirrelIndentProcessor.getChildIndent(myNode, cmSettings, sqSettings);
     }
 
     @Override
     public Spacing getSpacing(Block child1, @NotNull Block child2) {
-        return mySpacingProcessor.getSpacing(child1, child2);
+        return SquirrelSpacingProcessor.getSpacing(child1, child2, myNode, cmSettings, sqSettings);
     }
 
     @Override
@@ -70,7 +72,8 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
         final ArrayList<Block> tlChildren = new ArrayList<Block>();
         for (ASTNode childNode = getNode().getFirstChildNode(); childNode != null; childNode = childNode.getTreeNext()) {
             if (FormatterUtil.containsWhiteSpacesOnly(childNode)) continue;
-            final SquirrelBlock childBlock = new SquirrelBlock(childNode, createChildWrap(childNode), createChildAlignment(childNode), mySettings);
+            final SquirrelBlock childBlock = new SquirrelBlock(childNode, createChildWrap(childNode),
+                    createChildAlignment(childNode), mySettings);
             childBlock.setParent(this);
             tlChildren.add(childBlock);
         }
@@ -78,21 +81,27 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
     }
 
     public Wrap createChildWrap(ASTNode child) {
-        final IElementType childType = child.getElementType();
-        final Wrap wrap = myWrappingProcessor.createChildWrap(child, Wrap.createWrap(WrapType.NONE, false), myChildWrap);
-
-        if (childType == EQ) {
-            myChildWrap = wrap;
-        }
-        return wrap;
+        return SquirrelWrappingProcessor.createChildWrap(child, Wrap.createWrap(WrapType.NONE, false), myNode, cmSettings, sqSettings);
     }
 
     @Nullable
     protected Alignment createChildAlignment(ASTNode child) {
-        if (child.getElementType() != LPAREN && child.getElementType() != BLOCK) {
-            return myAlignmentProcessor.createChildAlignment();
-        }
-        return null;
+        return SquirrelAlignmentProcessor.createChildAlignment(child, myNode, cmSettings, sqSettings);
+    }
+
+    @Override
+    public boolean isLeaf() {
+        return false;
+    }
+
+    @Override
+    public BlockWithParent getParent() {
+        return myParent;
+    }
+
+    @Override
+    public void setParent(BlockWithParent newParent) {
+        myParent = newParent;
     }
 
     @NotNull
@@ -106,7 +115,8 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
             return new ChildAttributes(Indent.getNormalIndent(), null);
         }
 
-        if (previousType == RPAREN && STATEMENTS_WITH_OPTIONAL_BRACES.contains(elementType)) {
+        if (previousType == RPAREN && STATEMENTS_WITH_OPTIONAL_BRACES.contains(elementType) ||
+                previousType == PARAMETERS && elementType == FUNCTION_DECLARATION) {
             return new ChildAttributes(Indent.getNormalIndent(), null);
         }
 
@@ -134,6 +144,15 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
             return new ChildAttributes(Indent.getNoneIndent(), null);
         }
 
+        if (!previousBlock.isIncomplete() && newIndex < getSubSquirrelBlocks().size() && previousType != TokenType.ERROR_ELEMENT) {
+            return new ChildAttributes(previousBlock.getIndent(), previousBlock.getAlignment());
+        }
+        if (myParent instanceof SquirrelBlock && ((SquirrelBlock)myParent).isIncomplete()) {
+            ASTNode child = myNode.getFirstChildNode();
+            if (child == null) {
+                return new ChildAttributes(Indent.getContinuationIndent(), null);
+            }
+        }
         if (myParent == null && isIncomplete()) {
             return new ChildAttributes(Indent.getContinuationIndent(), null);
         }
@@ -169,20 +188,5 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
             mySubSquirrelBlocks = !mySubSquirrelBlocks.isEmpty() ? mySubSquirrelBlocks : Squirrel_EMPTY;
         }
         return mySubSquirrelBlocks;
-    }
-
-    @Override
-    public boolean isLeaf() {
-        return false;
-    }
-
-    @Override
-    public BlockWithParent getParent() {
-        return myParent;
-    }
-
-    @Override
-    public void setParent(BlockWithParent newParent) {
-        myParent = newParent;
     }
 }

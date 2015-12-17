@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.squirrelplugin.psi.*;
 
 import static com.squirrelplugin.SquirrelTokenTypes.*;
+import static com.squirrelplugin.SquirrelTokenTypesSets.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -44,8 +45,9 @@ public class SquirrelFoldingBuilder extends CustomFoldingBuilder implements Dumb
         final PsiElement psiElement = node.getPsi();
 
         if (psiElement instanceof SquirrelFile) return "/.../";
+        if (elementType == MULTI_LINE_DOC_COMMENT) return "/**...*/";
         if (elementType == MULTI_LINE_COMMENT) return "/*...*/";
-        if (elementType == LINE_COMMENT) return "//...";
+        if (elementType == SINGLE_LINE_COMMENT) return "//...";
         if (psiElement instanceof SquirrelClassBody) return "{...}";
         if (psiElement instanceof SquirrelFunctionBody) return "{...}";
         return "...";
@@ -59,7 +61,11 @@ public class SquirrelFoldingBuilder extends CustomFoldingBuilder implements Dumb
         if (psiElement instanceof SquirrelFile)
             return settings.COLLAPSE_FILE_HEADER;
 
-        if (elementType == MULTI_LINE_COMMENT || elementType == LINE_COMMENT) {
+        if (elementType == MULTI_LINE_DOC_COMMENT) {
+            return settings.COLLAPSE_DOC_COMMENTS;
+        }
+
+        if (elementType == MULTI_LINE_COMMENT || elementType == SINGLE_LINE_COMMENT) {
             return settings.COLLAPSE_DOC_COMMENTS;
         }
 
@@ -117,9 +123,9 @@ public class SquirrelFoldingBuilder extends CustomFoldingBuilder implements Dumb
             }
 
             final IElementType elementType = psiElement.getNode().getElementType();
-            if ((elementType == MULTI_LINE_COMMENT) && !isCustomRegionElement(psiElement)) {
+            if ((elementType == MULTI_LINE_DOC_COMMENT || elementType == MULTI_LINE_COMMENT) && !isCustomRegionElement(psiElement)) {
                 descriptors.add(new FoldingDescriptor(psiElement, psiElement.getTextRange()));
-            } else if (elementType == LINE_COMMENT) {
+            } else if (elementType == SINGLE_LINE_COMMENT) {
                 PsiElement lastCommentInSequence = psiElement;
                 PsiElement nextElement = psiElement;
                 boolean containsCustomRegionMarker = isCustomRegionElement(nextElement);

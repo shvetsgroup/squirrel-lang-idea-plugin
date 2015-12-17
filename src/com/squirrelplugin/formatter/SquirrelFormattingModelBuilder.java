@@ -10,7 +10,6 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.formatter.DocumentBasedFormattingModel;
 import com.squirrelplugin.psi.SquirrelFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SquirrelFormattingModelBuilder implements FormattingModelBuilder {
     @NotNull
@@ -22,7 +21,6 @@ public class SquirrelFormattingModelBuilder implements FormattingModelBuilder {
         return new DocumentBasedFormattingModel(rootBlock, element.getProject(), settings, psiFile.getFileType(), psiFile);
     }
 
-    @Nullable
     @Override
     public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
         return null;

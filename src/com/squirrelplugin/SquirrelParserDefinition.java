@@ -10,8 +10,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import com.squirrelplugin.lexer.SquirrelLexerAdapter;
+import com.squirrelplugin.lexer.SquirrelLexer;
 import com.squirrelplugin.psi.SquirrelFile;
+import com.squirrelplugin.psi.impl.SquirrelDocCommentImpl;
 import org.jetbrains.annotations.NotNull;
 
 public class SquirrelParserDefinition implements ParserDefinition {
@@ -19,7 +20,7 @@ public class SquirrelParserDefinition implements ParserDefinition {
     @NotNull
     @Override
     public Lexer createLexer(Project project) {
-        return new SquirrelLexerAdapter();
+        return new SquirrelLexer();
     }
 
     @Override
@@ -53,6 +54,9 @@ public class SquirrelParserDefinition implements ParserDefinition {
     @NotNull
     @Override
     public PsiElement createElement(ASTNode node) {
+        if (node.getElementType() == SquirrelTokenTypesSets.MULTI_LINE_DOC_COMMENT) {
+            return new SquirrelDocCommentImpl(node);
+        }
         return SquirrelTokenTypes.Factory.createElement(node);
     }
 
