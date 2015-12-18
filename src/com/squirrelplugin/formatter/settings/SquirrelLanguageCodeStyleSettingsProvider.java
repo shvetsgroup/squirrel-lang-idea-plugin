@@ -94,103 +94,67 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "WRAP_ON_TYPING",
 
             "KEEP_LINE_BREAKS",
-            "KEEP_FIRST_COLUMN_COMMENT",
+            "KEEP_FIRST_COLUMN_COMMENT",  // todo
 ////"KEEP_CONTROL_STATEMENT_IN_ONE_LINE",
             "KEEP_SIMPLE_BLOCKS_IN_ONE_LINE",
             "KEEP_SIMPLE_METHODS_IN_ONE_LINE",
             "KEEP_SIMPLE_CLASSES_IN_ONE_LINE",
 
-////"WRAP_LONG_LINES",
-////"WRAP_COMMENTS",
-
-////"CLASS_BRACE_STYLE",
+            "CLASS_BRACE_STYLE",
             "METHOD_BRACE_STYLE",
             "BRACE_STYLE",
 
-////"EXTENDS_LIST_WRAP",
-////"ALIGN_MULTILINE_EXTENDS_LIST",
-
-////"EXTENDS_KEYWORD_WRAP",
-
-////"THROWS_LIST_WRAP",
-////"ALIGN_MULTILINE_THROWS_LIST",
-////"ALIGN_THROWS_KEYWORD",
-////"THROWS_KEYWORD_WRAP",
-
             "METHOD_PARAMETERS_WRAP",
-            "ALIGN_MULTILINE_PARAMETERS",
+            "ALIGN_MULTILINE_PARAMETERS",  // todo
             "METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE",
             "METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE",
 
             "CALL_PARAMETERS_WRAP",
-            "ALIGN_MULTILINE_PARAMETERS_IN_CALLS",
-////"PREFER_PARAMETERS_WRAP",
+            "ALIGN_MULTILINE_PARAMETERS_IN_CALLS",  // todo
             "CALL_PARAMETERS_LPAREN_ON_NEXT_LINE",
             "CALL_PARAMETERS_RPAREN_ON_NEXT_LINE",
 
-////"METHOD_CALL_CHAIN_WRAP",
-////"WRAP_FIRST_METHOD_IN_CALL_CHAIN",
-////"ALIGN_MULTILINE_CHAINED_METHODS",
-
-////"IF_BRACE_FORCE",
             "ELSE_ON_NEW_LINE",
             "SPECIAL_ELSE_IF_TREATMENT",
 
-////"FOR_STATEMENT_WRAP",
-////"ALIGN_MULTILINE_FOR",
-////"FOR_STATEMENT_LPAREN_ON_NEXT_LINE",
-////"FOR_STATEMENT_RPAREN_ON_NEXT_LINE",
-////"FOR_BRACE_FORCE",
-
-////"WHILE_BRACE_FORCE",
-////"DOWHILE_BRACE_FORCE",
             "WHILE_ON_NEW_LINE",
-
-////"INDENT_CASE_FROM_SWITCH",
-// "INDENT_BREAK_FROM_CASE",
-
-////"RESOURCE_LIST_WRAP",
-////"ALIGN_MULTILINE_RESOURCES",
-////"RESOURCE_LIST_LPAREN_ON_NEXT_LINE",
-////"RESOURCE_LIST_RPAREN_ON_NEXT_LINE",
 
             "CATCH_ON_NEW_LINE",
 
-            "BINARY_OPERATION_WRAP",
-            "ALIGN_MULTILINE_BINARY_OPERATION",
-            "BINARY_OPERATION_SIGN_ON_NEXT_LINE",
-////"ALIGN_MULTILINE_PARENTHESIZED_EXPRESSION",
-            "PARENTHESES_EXPRESSION_LPAREN_WRAP",
-            "PARENTHESES_EXPRESSION_RPAREN_WRAP",
+//            "BINARY_OPERATION_WRAP",  // todo
+//            "ALIGN_MULTILINE_BINARY_OPERATION",  // todo
+//            "BINARY_OPERATION_SIGN_ON_NEXT_LINE",  // todo
+//            "PARENTHESES_EXPRESSION_LPAREN_WRAP",  // todo
+//            "PARENTHESES_EXPRESSION_RPAREN_WRAP",  // todo
 
-            "ASSIGNMENT_WRAP",
-////"ALIGN_MULTILINE_ASSIGNMENT",
-            "PLACE_ASSIGNMENT_SIGN_ON_NEXT_LINE",
+//            "ASSIGNMENT_WRAP",  // todo
+//            "ALIGN_MULTILINE_ASSIGNMENT", // todo
+//            "PLACE_ASSIGNMENT_SIGN_ON_NEXT_LINE",  // todo
 
-////"ALIGN_GROUP_FIELD_DECLARATIONS",
-////"ALIGN_CONSECUTIVE_VARIABLE_DECLARATIONS",
-
-            "TERNARY_OPERATION_WRAP",
-            "ALIGN_MULTILINE_TERNARY_OPERATION",
-            "TERNARY_OPERATION_SIGNS_ON_NEXT_LINE"
-
-////"ARRAY_INITIALIZER_WRAP",
-////"ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION",
-////"ARRAY_INITIALIZER_LBRACE_ON_NEXT_LINE",
-////"ARRAY_INITIALIZER_RBRACE_ON_NEXT_LINE",
-
-////"MODIFIER_LIST_WRAP",
-
-////"ASSERT_STATEMENT_WRAP",
-////"ASSERT_STATEMENT_COLON_ON_NEXT_LINE",
-
-////"ENUM_CONSTANTS_WRAP",
-////"CLASS_ANNOTATION_WRAP",
-////"METHOD_ANNOTATION_WRAP",
-////"FIELD_ANNOTATION_WRAP",
-////"PARAMETER_ANNOTATION_WRAP",
-////"VARIABLE_ANNOTATION_WRAP",
+//            "TERNARY_OPERATION_WRAP",  // todo
+//            "ALIGN_MULTILINE_TERNARY_OPERATION",  // todo
+//            "TERNARY_OPERATION_SIGNS_ON_NEXT_LINE",  // todo
+//
+//            "ARRAY_INITIALIZER_WRAP", // todo
+//            "ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION", // todo
+//            "ARRAY_INITIALIZER_LBRACE_ON_NEXT_LINE", // todo
+//            "ARRAY_INITIALIZER_RBRACE_ON_NEXT_LINE", // todo
+//
+//            "ENUM_CONSTANTS_WRAP", // todo
     };
+
+    public static String customWrappingSettings[] = {
+//            "CLASS_MEMBERS_WRAP",
+//            "ENUM_WRAP",
+//            "TABLE_WRAP",
+//            "ENUM_LBRACE_ON_NEXT_LINE",
+//            "ENUM_RBRACE_ON_NEXT_LINE",
+//            "TABLE_LBRACE_ON_NEXT_LINE",
+//            "TABLE_RBRACE_ON_NEXT_LINE",
+//            "CLASS_ATTRIBUTE_LBRACE_ON_NEXT_LINE",
+//            "CLASS_ATTRIBUTE_RBRACE_ON_NEXT_LINE",
+    };
+
 
 
     @NotNull
@@ -222,10 +186,7 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
     public CommonCodeStyleSettings getDefaultCommonSettings() {
         CommonCodeStyleSettings defaultSettings = new CommonCodeStyleSettings(getLanguage());
         CommonCodeStyleSettings.IndentOptions indentOptions = defaultSettings.initIndentOptions();
-        indentOptions.INDENT_SIZE = 4;
         indentOptions.CONTINUATION_INDENT_SIZE = 4;
-        indentOptions.TAB_SIZE = 4;
-        defaultSettings.RIGHT_MARGIN = 80;
 
         return defaultSettings;
     }
@@ -293,6 +254,63 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             consumer.showStandardOptions(standardBlankLinesSettings);
         } else if (settingsType == SettingsType.WRAPPING_AND_BRACES_SETTINGS) {
             consumer.showStandardOptions(standardWrappingAndBracesSettings);
+
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "ENUM_WRAP",
+//                    "Enums",
+//                    null, CodeStyleSettingsCustomizable.WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "ENUM_LBRACE_ON_NEXT_LINE",
+//                    "New line after '{'",
+//                    "Enums"
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "ENUM_RBRACE_ON_NEXT_LINE",
+//                    "Place '}' on new line",
+//                    "Enums"
+//            );
+//
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "TABLE_WRAP",
+//                    "Tables",
+//                    null, CodeStyleSettingsCustomizable.WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "TABLE_LBRACE_ON_NEXT_LINE",
+//                    "New line after '{'",
+//                    "Tables"
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "TABLE_RBRACE_ON_NEXT_LINE",
+//                    "Place '}' on new line",
+//                    "Tables"
+//            );
+//
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "CLASS_ATTRIBUTES_WRAP",
+//                    "Class attributes",
+//                    "Classes", CodeStyleSettingsCustomizable.WRAP_OPTIONS, CodeStyleSettingsCustomizable.WRAP_VALUES
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "CLASS_ATTRIBUTE_LBRACE_ON_NEXT_LINE",
+//                    "New line after '</'",
+//                    "Classes"
+//            );
+//            consumer.showCustomOption(
+//                    SquirrelCodeStyleSettings.class,
+//                    "CLASS_ATTRIBUTE_RBRACE_ON_NEXT_LINE",
+//                    "Place '/>' on new line",
+//                    "Classes"
+//            );
         }
     }
 
@@ -344,11 +362,17 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "    }\n" +
             "}";
 
-    public static final String WRAPPING_CODE_SAMPLE = "class Foo {\n" +
+    public static final String WRAPPING_CODE_SAMPLE = "enum f { a = 2, b = 2, c = 2, d, e, f = 2, g = 2, h = 2, i = \"32\" }\n" +
+            "local s = { a = 2, b = 2, c = 2, f = 2, g = 2, h = 2, i = \"32\" }\n" +
+            "class zero { </ a = 2/>a = 2;\n" +
+            "    </ a = 2, b = 2, c = \"los angeles\", s = 2, l = 2 />\n" +
+            "    b = 2; c = function () { k = 2; k = 3 }; g = 2; function s() {} }\n" +
+            "class Foo {\n" +
             "    // function fBar (x,y);\n" +
             "    function fOne(argA, argB, argC, argD, argE, argF, argG = 30, argH = 40) {\n" +
             "        local numbers = [\"one\", \"two\", \"three\", \"four\", \"five\", \"six\"];\n" +
-            "        local x = (\"\" + argA) + argB + argC + argD + argE + argF + argG + argH;\n" +
+            "        local\n" +
+            "                x = (\"\" + argA) + argB + argC + argD + argE + argF + argG + argH;\n" +
             "        try {\n" +
             "            this.fTwo(argA, argB, argC, this.fThree(\"\", argE, argF, argG, argH));\n" +
             "        } catch (ignored) {}\n" +
@@ -362,6 +386,7 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "        } while (colors.length > 0);\n" +
             "    }\n" +
             "\n" +
+            "    </ a = 2, b = 2, c = 2, f = 2, g = 2, h = 2, i = \"32\" />\n" +
             "    function fTwo(strA, strB, strC, strD, ...) {\n" +
             "        if (true)\n" +
             "        return strC;\n" +
@@ -369,10 +394,15 @@ public class SquirrelLanguageCodeStyleSettingsProvider extends LanguageCodeStyle
             "        strB == \"two\") {\n" +
             "            return strA + strB;\n" +
             "        } else if (true) return strD;\n" +
+            "        else return strB;\n" +
             "        throw strD;\n" +
             "    }\n" +
             "\n" +
             "    function fThree(strA, strB, strC, strD, strE) {\n" +
+            "        if (strA) { strC = \"23\"}\n" +
+            "        if (strD) { strB = \"23\";\n" +
+            "            strC = \"23\";\n" +
+            "        }\n" +
             "        return strA + strB + strC + strD + strE;\n" +
             "    }\n" +
             "}";

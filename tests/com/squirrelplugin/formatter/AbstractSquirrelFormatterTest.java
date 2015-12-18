@@ -8,6 +8,8 @@ import com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsPr
 
 import java.lang.reflect.Field;
 
+import static com.intellij.psi.codeStyle.CommonCodeStyleSettings.*;
+
 public abstract class AbstractSquirrelFormatterTest extends FormatterTestCase {
     public SquirrelCodeStyleSettings getSqSettings() {
         return getSettings().getCustomSettings(SquirrelCodeStyleSettings.class);
@@ -35,6 +37,10 @@ public abstract class AbstractSquirrelFormatterTest extends FormatterTestCase {
     }
 
     protected void setDefaultSettings() {
+        // Margin for tests.
+        getCmSettings().RIGHT_MARGIN = 35;
+
+
 // Before parentheses
         getCmSettings().SPACE_BEFORE_METHOD_CALL_PARENTHESES = false;
         getCmSettings().SPACE_BEFORE_METHOD_PARENTHESES = false;
@@ -108,8 +114,12 @@ public abstract class AbstractSquirrelFormatterTest extends FormatterTestCase {
 // Wrapping -------------------
 
 
-        getCmSettings().BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
-        getCmSettings().CLASS_BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
-        getCmSettings().METHOD_BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
+        getCmSettings().BRACE_STYLE = END_OF_LINE;
+        getCmSettings().CLASS_BRACE_STYLE = END_OF_LINE;
+        getCmSettings().METHOD_BRACE_STYLE = END_OF_LINE;
+
+        getCmSettings().ELSE_ON_NEW_LINE = false;
+        getCmSettings().WHILE_ON_NEW_LINE = false;
+        getCmSettings().CATCH_ON_NEW_LINE = false;
     }
 }

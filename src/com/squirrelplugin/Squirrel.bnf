@@ -81,7 +81,7 @@
   implements("(ClassDeclaration|ClassExpression)")="com.squirrelplugin.psi.SquirrelClass"
   implements("(FunctionDeclaration|ConstructorDeclaration|MethodDeclaration|FunctionExpression)")="com.squirrelplugin.psi.SquirrelFunction"
   extends(".*Expression")=Expression
-  extends(".*(Statement|Declaration)")=Statement
+  extends(".*(Statement|Declaration|Block)")=Statement
   name(".*Expression")="expression"
 }
 
@@ -147,7 +147,7 @@ private statement_recover ::= !(<<eof>> | delimiter | '{' | '}' | const | enum |
 
 Statement ::=
     Block
-    | Expression
+    | ExpressionStatement
     | ConstDeclaration
     | EnumDeclaration
     | LocalDeclaration
@@ -201,7 +201,7 @@ ClassDeclaration ::= class ClassName [extends ClassName] ClassBody {pin=1}
 ClassName ::= Id ('.' Id)*
 ClassBody ::= '{' ClassMembers? '}'
 
-ClassMembers ::= ClassMember (semi* ClassMember)* semi?
+private ClassMembers ::= ClassMember (semi* ClassMember)* semi?
 ClassMember ::= ClassAttribute? static? (ConstructorDeclaration | RegularClassMember)
 private RegularClassMember ::= KeyValuePair | MethodDeclaration
 ConstructorDeclaration ::= constructor Parameters FunctionBody
@@ -231,6 +231,8 @@ CatchPart ::= catch '(' Id ')' StatementOrEmpty {pin=1}
 
 private ExpressionWithRecoverUntilParen ::= Expression {recoverWhile=parenthesesRecovery}
 private parenthesesRecovery ::= !')'
+
+ExpressionStatement ::= Expression;
 
 Expression ::=
   CommaExpression

@@ -61,7 +61,7 @@ public class SquirrelBlock extends AbstractBlock implements BlockWithParent {
 
     @Override
     public Spacing getSpacing(Block child1, @NotNull Block child2) {
-        return SquirrelSpacingProcessor.getSpacing(child1, child2, myNode, cmSettings, sqSettings);
+        return new SquirrelSpacingProcessor(child1, child2, myNode, cmSettings, sqSettings).getSpacing();
     }
 
     @Override

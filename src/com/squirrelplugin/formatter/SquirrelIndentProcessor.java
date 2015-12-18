@@ -9,6 +9,7 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.tree.IElementType;
 import com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettings;
+import com.squirrelplugin.util.SqFormatterUtil;
 import com.squirrelplugin.util.UsefulPsiTreeUtil;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +26,6 @@ public class SquirrelIndentProcessor {
         final IElementType parentType = parent != null ? parent.getElementType() : null;
         final ASTNode superParent = parent == null ? null : parent.getTreeParent();
         final IElementType superParentType = superParent == null ? null : superParent.getElementType();
-
-        final int braceStyle = superParentType == FUNCTION_BODY ? cmSettings.METHOD_BRACE_STYLE : cmSettings.BRACE_STYLE;
-
-        // TODO: tables
 
         // COMMENTS
 
@@ -59,6 +56,9 @@ public class SquirrelIndentProcessor {
         }
 
         // BRACES & BLOCKS
+
+        final int braceStyle = superParentType == CLASS_BODY ? cmSettings.CLASS_BRACE_STYLE :
+                (superParentType == FUNCTION_BODY ? cmSettings.METHOD_BRACE_STYLE : cmSettings.BRACE_STYLE);
 
         if (elementType == LBRACE || elementType == RBRACE) {
             switch (braceStyle) {
@@ -94,7 +94,7 @@ public class SquirrelIndentProcessor {
             }
             return Indent.getContinuationIndent();
         }
-        if (BINARY_EXPRESSIONS.contains(parentType) && prevSibling != null) { // TODO: Check if all operators are added to binary set
+        if (BINARY_EXPRESSIONS.contains(parentType) && prevSibling != null) {
             return Indent.getContinuationIndent();
         }
         if (parentType == TERNARY_EXPRESSION && (elementType == COLON || elementType == QUESTION || prevSiblingType == COLON || prevSiblingType == QUESTION)) {
@@ -115,11 +115,13 @@ public class SquirrelIndentProcessor {
 
         // --- Statements
 
-        if (parentType == ENUM_DECLARATION && isBetweenBraces(node)) {
+        if (parentType == ENUM_DECLARATION && SqFormatterUtil.isBetweenBraces(node)) {
             return Indent.getNormalIndent();
         }
-
-        if (parentType == FUNCTION_BODY && elementType != BLOCK) {
+        if (parentType == TABLE_EXPRESSION && SqFormatterUtil.isBetweenBraces(node)) {
+            return Indent.getNormalIndent();
+        }
+        if (parentType == FUNCTION_BODY && SqFormatterUtil.isSimpleStatement(node)) {
             return Indent.getNormalIndent();
         }
 
@@ -146,46 +148,34 @@ public class SquirrelIndentProcessor {
             return Indent.getNormalIndent();
         }
 
-        if (parentType == FOR_STATEMENT && elementType != BLOCK && prevSiblingType == RPAREN) {
+        if (parentType == FOR_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == FOREACH_STATEMENT && elementType != BLOCK && prevSiblingType == RPAREN) {
+        if (parentType == FOREACH_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == WHILE_STATEMENT && elementType != BLOCK && prevSiblingType == RPAREN) {
+        if (parentType == WHILE_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == DO_WHILE_STATEMENT && elementType != BLOCK && prevSiblingType == DO) {
+        if (parentType == DO_WHILE_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == DO) {
             return Indent.getNormalIndent();
         }
         if (parentType == SWITCH_STATEMENT && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
             return Indent.getNormalIndent();
         }
-        if ((parentType == SWITCH_CASE || parentType == DEFAULT_CASE) && elementType == STATEMENT) {
+        if (STATEMENTS.contains(elementType) &&  (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == IF_STATEMENT && elementType != BLOCK &&
-                (prevSiblingType == RPAREN || (prevSiblingType == ELSE && elementType != IF_STATEMENT))) {
+        if (parentType == IF_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && (prevSiblingType == RPAREN || prevSiblingType == ELSE)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == TRY_STATEMENT && elementType != BLOCK && prevSiblingType == TRY) {
+        if (parentType == TRY_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == TRY) {
             return Indent.getNormalIndent();
         }
-        if (parentType == CATCH_PART && elementType != BLOCK && prevSiblingType == RPAREN) {
+        if (parentType == CATCH_PART && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
 
         return Indent.getNoneIndent();
-    }
-
-    private static boolean isBetweenBraces(@NotNull final ASTNode node) {
-        final IElementType elementType = node.getElementType();
-        if (elementType == LBRACE || elementType == RBRACE) return false;
-
-        for (ASTNode sibling = node.getTreePrev(); sibling != null; sibling = sibling.getTreePrev()) {
-            if (sibling.getElementType() == LBRACE) return true;
-        }
-
-        return false;
     }
 }

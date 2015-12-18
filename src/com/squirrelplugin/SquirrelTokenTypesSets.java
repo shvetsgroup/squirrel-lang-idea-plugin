@@ -66,6 +66,29 @@ public interface SquirrelTokenTypesSets {
             BIT_AND, BIT_OR, BIT_XOR, BIT_NOT
     );
 
+    TokenSet STATEMENTS = TokenSet.create(
+            BLOCK,
+            EXPRESSION_STATEMENT,
+            CONST_DECLARATION,
+            ENUM_DECLARATION,
+            LOCAL_DECLARATION,
+            FUNCTION_DECLARATION,
+            CLASS_DECLARATION,
+            FOR_STATEMENT,
+            FOREACH_STATEMENT,
+            WHILE_STATEMENT,
+            DO_WHILE_STATEMENT,
+            IF_STATEMENT,
+            SWITCH_STATEMENT,
+            TRY_STATEMENT,
+            RETURN_STATEMENT,
+            BREAK_STATEMENT,
+            CONTINUE_STATEMENT,
+            YIELD_STATEMENT,
+            THROW_STATEMENT
+    );
+
+
     TokenSet DECLARATIONS = TokenSet.create(
             CLASS_DECLARATION,
             FUNCTION_DECLARATION,
@@ -82,9 +105,20 @@ public interface SquirrelTokenTypesSets {
 
     TokenSet BLOCKS = TokenSet.create(
             BLOCK,
-            CLASS_MEMBERS,
+            CLASS_BODY,
             SQUIRREL_FILE
     );
+    TokenSet BLOCKS_WITH_BRACES = TokenSet.create(
+            BLOCK,
+            CLASS_BODY,
+            SWITCH_STATEMENT,
+            ENUM_DECLARATION,
+            TABLE_EXPRESSION
+    );
+
+    TokenSet DOC_COMMENT_CONTENTS =
+            TokenSet.create(MULTI_LINE_DOC_COMMENT_START, MULTI_LINE_COMMENT_BODY, DOC_COMMENT_LEADING_ASTERISK, MULTI_LINE_COMMENT_END);
+
 
     class SquirrelDocCommentElementType extends ILazyParseableElementType {
         public SquirrelDocCommentElementType() {
