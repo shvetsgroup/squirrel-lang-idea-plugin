@@ -64,7 +64,7 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
 
     @Override
     public String getParentGroup() {
-        return SquirrelBundle.message("squirrel.title");
+        return WebModuleBuilder.GROUP_NAME;
     }
 
     @Nullable
