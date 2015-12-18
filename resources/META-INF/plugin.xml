@@ -32,6 +32,11 @@
         <lang.commenter language="Squirrel" implementationClass="com.squirrelplugin.SquirrelCommenter"/>
         <codeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
         <langCodeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
+
+        <!-- moduleBuilder works in IntelliJ IDEA only -->
+        <moduleBuilder builderClass="com.squirrelplugin.projectWizard.SquirrelModuleBuilder"/>
+        <!-- directoryProjectGenerator works in WebStorm and other small IDEs -->
+        <directoryProjectGenerator implementation="com.squirrelplugin.projectWizard.SquirrelProjectGenerator"/>
     </extensions>
 
     <application-components>
@@ -43,7 +48,10 @@
     </project-components>
 
     <actions>
-        <!-- Add your actions here -->
+        <action id="Squirrel.NewSquirrelFile" class="com.squirrelplugin.actions.NewSquirrelFileAction"
+                text="Squirrel file" description="Create new Squirrel file">
+            <add-to-group group-id="NewGroup" relative-to-action="NewFile" anchor="after"/>
+        </action>
     </actions>
 
 </idea-plugin>

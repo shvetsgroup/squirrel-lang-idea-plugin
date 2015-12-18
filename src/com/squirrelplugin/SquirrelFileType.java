@@ -36,6 +36,6 @@ public class SquirrelFileType extends LanguageFileType {
     @Nullable
     @Override
     public Icon getIcon() {
-        return SquirrelIcons.FILE;
+        return SquirrelIcons.NUT_FILE;
     }
 }
