@@ -1,4 +1,4 @@
-package com.squirrelplugin.projectWizard;
+package com.squirrelplugin;
 
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -9,17 +9,12 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.WebModuleBuilder;
-import com.intellij.openapi.module.WebModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.squirrelplugin.SquirrelBundle;
-import com.squirrelplugin.SquirrelIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,20 +54,18 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
 
     @Override
     public ModuleType getModuleType() {
-        return WebModuleType.getInstance();
+        return SquirrelModuleType.getInstance();
     }
 
     @Override
     public String getParentGroup() {
-        return WebModuleBuilder.GROUP_NAME;
+        return SquirrelModuleType.MODULE_TYPE_ID;
     }
 
     @Nullable
     @Override
     public ModuleWizardStep getCustomOptionsStep(final WizardContext context, final Disposable parentDisposable) {
-        final SquirrelModuleWizardStep step = new SquirrelModuleWizardStep(context);
-        Disposer.register(parentDisposable, step);
-        return step;
+        return null;
     }
 
     @Override

@@ -21,6 +21,8 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
+    <depends optional="true" config-file="java-deps.xml">com.intellij.modules.java</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
         <fileTypeFactory implementation="com.squirrelplugin.SquirrelFileTypeFactory"/>
@@ -32,11 +34,7 @@
         <lang.commenter language="Squirrel" implementationClass="com.squirrelplugin.SquirrelCommenter"/>
         <codeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
         <langCodeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
-
-        <!-- moduleBuilder works in IntelliJ IDEA only -->
-        <moduleBuilder builderClass="com.squirrelplugin.projectWizard.SquirrelModuleBuilder"/>
-        <!-- directoryProjectGenerator works in WebStorm and other small IDEs -->
-        <directoryProjectGenerator implementation="com.squirrelplugin.projectWizard.SquirrelProjectGenerator"/>
+        <directoryProjectGenerator implementation="com.squirrelplugin.SquirrelProjectGenerator"/>
     </extensions>
 
     <application-components>

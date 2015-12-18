@@ -1,32 +1,42 @@
-package com.squirrelplugin.projectWizard;
+package com.squirrelplugin;
 
-import com.intellij.ide.util.projectWizard.WebProjectTemplate;
+import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableModelsProvider;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.squirrelplugin.SquirrelBundle;
-import com.squirrelplugin.SquirrelIcons;
+import com.intellij.platform.DirectoryProjectGenerator;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class SquirrelProjectGenerator extends WebProjectTemplate<Object> implements Comparable<com.squirrelplugin.projectWizard.SquirrelProjectGenerator> {
-
+public class SquirrelProjectGenerator implements DirectoryProjectGenerator {
+    @Nls
     @NotNull
-    public final String getName() {
+    @Override
+    public String getName() {
         return SquirrelBundle.message("squirrel.title");
     }
 
-    @NotNull
-    public final String getDescription() {
-        return SquirrelBundle.message("squirrel.project.description");
+    @Nullable
+    @Override
+    public Object showGenerationSettings(VirtualFile baseDir) throws ProcessCanceledException {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Icon getLogo() {
+        return SquirrelIcons.SQUIRREL;
     }
 
     @Override
-    public void generateProject(@NotNull Project project, @NotNull VirtualFile baseDir, @NotNull Object settings, @NotNull Module module) {
+    public void generateProject(@NotNull Project project, @NotNull VirtualFile baseDir, @Nullable Object settings, @NotNull Module module) {
         ApplicationManager.getApplication().runWriteAction(
                 new Runnable() {
                     public void run() {
@@ -37,18 +47,9 @@ public class SquirrelProjectGenerator extends WebProjectTemplate<Object> impleme
                 });
     }
 
-    public Icon getLogo() {
-        return SquirrelIcons.SQUIRREL; // todo replace with project icon
-    }
-
     @NotNull
     @Override
-    public GeneratorPeer<Object> createPeer() {
-        return new SquirrelGeneratorPeer();
-    }
-
-    @Override
-    public int compareTo(@NotNull final com.squirrelplugin.projectWizard.SquirrelProjectGenerator generator) {
-        return getName().compareTo(generator.getName());
+    public ValidationResult validate(@NotNull String baseDirPath) {
+        return ValidationResult.OK;
     }
 }
