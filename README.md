@@ -15,5 +15,4 @@ WORK IN PROGRESS.
 
 # Known issues
 
-1. Class constructor should always have braces around its body.
-2. Increment and decrement operators should always go in the same line with it's identifier.
+1. Increment and decrement operators should always go in the same line with it's identifier.

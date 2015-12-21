@@ -14,7 +14,8 @@ import static com.squirrelplugin.lexer.SquirrelLexer.*;
         this((java.io.Reader)null);
     }
 
-    protected int myLeftParenCount;
+    protected int myLeftParenCount = 0;
+    protected boolean setClassStateOnBrace = false;
 
     private static final class State {
         final int state;
@@ -61,6 +62,7 @@ import static com.squirrelplugin.lexer.SquirrelLexer.*;
 %eof{
   myLeftParenCount = 0;
   myStateStack.clear();
+  setClassStateOnBrace = false;
 %eof}
 
 SINGLE_LINE_COMMENT=("//"|#)[^\r\n]*
@@ -80,11 +82,11 @@ WS=[ \t\f]
 ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
 // SS means SYNTHETIC_SEMICOLON
-%state MULTI_LINE_COMMENT_STATE, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES
+%state MULTI_LINE_COMMENT_STATE, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES, CLASS_DECLARATION_BRACES
 
 %%
 
-<YYINITIAL, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES> {
+<YYINITIAL, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES, CLASS_DECLARATION_BRACES> {
   {SINGLE_LINE_COMMENT} { return SINGLE_LINE_COMMENT; }
 
   // multi-line comments
@@ -102,7 +104,7 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 {MULTI_LINE_COMMENT_END}   { popState(); return yystate() == MULTI_LINE_COMMENT_STATE ? MULTI_LINE_COMMENT_BODY : MULTI_LINE_COMMENT_END; }
 }
 
-<YYINITIAL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES> {
+<YYINITIAL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES, CLASS_DECLARATION_BRACES> {
   {WS}+                { return WS; }
   {NL}+                { return NL; }
 
@@ -111,7 +113,15 @@ ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 if (yystate() == PREVENT_SS_UNTIL_BRACE) {
     popState();
 }
-pushState(BRACES);
+
+if (setClassStateOnBrace) {
+  pushState(CLASS_DECLARATION_BRACES);
+  setClassStateOnBrace = false;
+}
+else {
+  pushState(BRACES);
+}
+
 return LBRACE;
 
                        }
@@ -180,8 +190,13 @@ return LBRACE;
   "enum"               { pushState(PREVENT_SS_UNTIL_BRACE); return ENUM; }
   "local"              { return LOCAL; }
   "function"           { pushState(PREVENT_SS_AFTER_PARENTHESES); return FUNCTION; }
-  "constructor"        { return CONSTRUCTOR; } // TODO: CAN ALSO BE A STATEMENT WITH PARENTHESES
-  "class"              { pushState(PREVENT_SS_UNTIL_BRACE); return CLASS; }
+  "constructor"        {
+      if (yystate() == CLASS_DECLARATION_BRACES) {
+        pushState(PREVENT_SS_AFTER_PARENTHESES);
+      }
+      return CONSTRUCTOR;
+  }
+  "class"              { pushState(PREVENT_SS_UNTIL_BRACE); setClassStateOnBrace = true; return CLASS; }
   "extends"            { return EXTENDS; }
   "static"             { return STATIC; }
   "break"              { pushState(MAYBE_TERMINATE_KEYWORD_WITH_NL); return BREAK; }
