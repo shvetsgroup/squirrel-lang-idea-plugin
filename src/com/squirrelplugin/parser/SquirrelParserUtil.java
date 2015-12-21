@@ -14,7 +14,7 @@ public class SquirrelParserUtil extends GeneratedParserUtilBase {
         IElementType type = null;
         for (int i = 1; i < builder_.getCurrentOffset(); i++) {
             type = builder_.rawLookup(-i);
-            if (type != WS && type != NL && type != SINGLE_LINE_COMMENT && type != MULTI_LINE_COMMENT) {
+            if (!COMMENTS.contains(type) && !WHITE_SPACES.contains(type)) {
                 break;
             }
         }
