@@ -1,7 +1,5 @@
 package com.sqide.sdk;
 
-import com.sqide.util.SquirrelConstants;
-import com.sqide.configuration.SquirrelSdkConfigurable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.module.Module;
@@ -18,6 +16,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ObjectUtils;
+import com.sqide.configuration.SquirrelSdkConfigurable;
+import com.sqide.util.SquirrelConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,7 +105,8 @@ public class SquirrelSmallIDEsSdkService extends SquirrelSdkService {
         LOG.info("isSquirrelSdkLibRoot1: " + root);
         LOG.info("isSquirrelSdkLibRoot2: " + root.isInLocalFileSystem());
         LOG.info("isSquirrelSdkLibRoot3: " + root.isDirectory());
-        LOG.info("isSquirrelSdkLibRoot4: " + (VfsUtilCore.findRelativeFile(SquirrelConstants.SQUIRREL_VERSION_FILE_PATH, root) != null));
+        LOG.info("isSquirrelSdkLibRoot4: " + (VfsUtilCore.findRelativeFile(SquirrelConstants
+                .SQUIRREL_VERSION_FILE_PATH, root) != null));
 
         return root.isInLocalFileSystem() &&
                 root.isDirectory() &&

@@ -1,6 +1,5 @@
 package com.sqide.sdk;
 
-import com.sqide.util.SquirrelConstants;
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -10,10 +9,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import com.sqide.util.SquirrelConstants;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +20,8 @@ import java.util.Set;
 
 public abstract class SquirrelSdkService extends SimpleModificationTracker {
     public static final Logger LOG = Logger.getInstance(SquirrelSdkService.class);
-    private static final Set<String> FEDORA_SUBDIRECTORIES = ContainerUtil.newHashSet("linux_amd64", "linux_386", "linux_arm");
+    private static final Set<String> FEDORA_SUBDIRECTORIES = ContainerUtil.newHashSet("linux_amd64", "linux_386",
+            "linux_arm");
 
     @NotNull
     protected final Project myProject;
@@ -70,14 +68,16 @@ public abstract class SquirrelSdkService extends SimpleModificationTracker {
                 LOG.debug(sdkHomePath + "/bin doesn't exist, checking linux-specific paths");
 
                 // failed to define executable path in old linux and old squirrel
-                File squirrelFromPath = PathEnvironmentVariableUtil.findInPath(SquirrelConstants.SQUIRREL_EXECUTABLE_NAME);
+                File squirrelFromPath = PathEnvironmentVariableUtil.findInPath(SquirrelConstants
+                        .SQUIRREL_EXECUTABLE_NAME);
                 if (squirrelFromPath != null && squirrelFromPath.exists()) {
                     LOG.debug("Squirrel executable found at " + squirrelFromPath.getAbsolutePath());
                     return squirrelFromPath.getAbsolutePath();
                 }
             }
 
-            String executableName = SquirrelSdkUtil.getBinaryFileNameForPath(SquirrelConstants.SQUIRREL_EXECUTABLE_NAME);
+            String executableName = SquirrelSdkUtil.getBinaryFileNameForPath(SquirrelConstants
+                    .SQUIRREL_EXECUTABLE_NAME);
             String executable = FileUtil.join(sdkHomePath, "bin", executableName);
 
             if (!new File(executable).exists() && SystemInfo.isLinux) {

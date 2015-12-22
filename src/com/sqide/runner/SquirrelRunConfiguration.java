@@ -11,11 +11,13 @@ import com.intellij.openapi.components.PathMacroManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
+import com.sqide.sdk.SquirrelSdkService;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,14 +31,15 @@ import java.util.Collection;
  *
  * @author wibotwi, jansorg
  */
-public class SquirrelRunConfiguration extends AbstractRunConfiguration implements SquirrelRunConfigurationParams, RunConfigurationWithSuppressedDefaultDebugAction {
+public class SquirrelRunConfiguration extends AbstractRunConfiguration implements SquirrelRunConfigurationParams,
+        RunConfigurationWithSuppressedDefaultDebugAction {
     private String interpreterOptions = "";
     private String workingDirectory = "";
-    private String interpreterPath = "";
     private String scriptName;
     private String programsParameters;
 
-    protected SquirrelRunConfiguration(RunConfigurationModule runConfigurationModule, ConfigurationFactory configurationFactory, String name) {
+    protected SquirrelRunConfiguration(RunConfigurationModule runConfigurationModule, ConfigurationFactory
+            configurationFactory, String name) {
         super(name, runConfigurationModule, configurationFactory);
     }
 
@@ -56,18 +59,9 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
     }
 
     @Nullable
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-        SquirrelCommandLineState state = new SquirrelCommandLineState(this, env);
-
-        return state;
-    }
-
-    public String getInterpreterPath() {
-        return interpreterPath;
-    }
-
-    public void setInterpreterPath(String path) {
-        this.interpreterPath = path;
+    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws
+            ExecutionException {
+        return new SquirrelCommandLineState(this, env);
     }
 
     @Override
@@ -75,16 +69,14 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         super.checkConfiguration();
 
         Module module = getConfigurationModule().getModule();
+        Project project = getProject();
 
         ProgramParametersUtil.checkWorkingDirectoryExist(this, getProject(), module);
 
-        if (StringUtil.isEmptyOrSpaces(interpreterPath)) {
-            throw new RuntimeConfigurationException("No interpreter path given.");
-        }
+        String executable = SquirrelSdkService.getInstance(project).getSquirrelExecutablePath(module);
 
-        File interpreterFile = new File(interpreterPath);
-        if (!interpreterFile.isFile() || !interpreterFile.canRead()) {
-            throw new RuntimeConfigurationException("Interpreter path is invalid or not readable.");
+        if (StringUtil.isEmptyOrSpaces(executable)) {
+            throw new RuntimeConfigurationException("Squirrel SDK not configured.");
         }
 
         if (StringUtil.isEmptyOrSpaces(scriptName)) {
@@ -113,8 +105,6 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         EnvironmentVariablesComponent.readExternal(element, getEnvs());
 
         // common config
-        interpreterOptions = JDOMExternalizerUtil.readField(element, "INTERPRETER_OPTIONS");
-        interpreterPath = JDOMExternalizerUtil.readField(element, "INTERPRETER_PATH");
         workingDirectory = JDOMExternalizerUtil.readField(element, "WORKING_DIRECTORY");
 
         String parentEnvValue = JDOMExternalizerUtil.readField(element, "PARENT_ENVS");
@@ -132,8 +122,6 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         super.writeExternal(element);
 
         // common config
-        JDOMExternalizerUtil.writeField(element, "INTERPRETER_OPTIONS", interpreterOptions);
-        JDOMExternalizerUtil.writeField(element, "INTERPRETER_PATH", interpreterPath);
         JDOMExternalizerUtil.writeField(element, "WORKING_DIRECTORY", workingDirectory);
         JDOMExternalizerUtil.writeField(element, "PARENT_ENVS", Boolean.toString(isPassParentEnvs()));
 
@@ -147,14 +135,6 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         EnvironmentVariablesComponent.writeExternal(element, getEnvs());
 
         PathMacroManager.getInstance(getProject()).collapsePathsRecursively(element);
-    }
-
-    public String getInterpreterOptions() {
-        return interpreterOptions;
-    }
-
-    public void setInterpreterOptions(String interpreterOptions) {
-        this.interpreterOptions = interpreterOptions;
     }
 
     public String getWorkingDirectory() {

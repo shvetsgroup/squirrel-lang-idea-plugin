@@ -1,7 +1,5 @@
 package com.sqide.runner;
 
-import com.sqide.SquirrelIcons;
-import com.sqide.util.SquirrelInterpreterDetection;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configuration.ConfigurationFactoryEx;
@@ -10,6 +8,7 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.project.Project;
+import com.sqide.SquirrelIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -38,15 +37,16 @@ public class SquirrelConfigurationType extends ConfigurationTypeBase {
 
         @Override
         public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
-            //the last param has to be false because we do not want a fallback to the template (we're creating it right now) (avoiding a SOE)
-            RunManagerEx.getInstanceEx(configuration.getProject()).setBeforeRunTasks(configuration, Collections.<BeforeRunTask>emptyList(), false);
+            //the last param has to be false because we do not want a fallback to the template (we're creating it
+            // right now) (avoiding a SOE)
+            RunManagerEx.getInstanceEx(configuration.getProject()).setBeforeRunTasks(configuration, Collections
+                    .<BeforeRunTask>emptyList(), false);
         }
 
         @Override
         public RunConfiguration createTemplateConfiguration(Project project) {
-            SquirrelRunConfiguration configuration = new SquirrelRunConfiguration(new RunConfigurationModule(project), this, "");
-            configuration.setInterpreterPath(SquirrelInterpreterDetection.instance().findBestLocation());
-
+            SquirrelRunConfiguration configuration = new SquirrelRunConfiguration(new RunConfigurationModule(project)
+                    , this, "");
             return configuration;
         }
     }

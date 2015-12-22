@@ -89,7 +89,8 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
             final VirtualFile mainFile = baseDir.createChildData(null, modifiableRootModel.getModule().getName().toLowerCase(Locale.US) + ".nut");
             mainFile.setBinaryContent(("function main() {\n" +
                     "  ::print(\"Hello, World!\");\n" +
-                    "}\n").getBytes(Charset.forName("UTF-8")));
+                    "}\n\n" +
+                    "main();").getBytes(Charset.forName("UTF-8")));
             scheduleFilesOpeningAndPubGet(modifiableRootModel.getModule(), Arrays.asList(mainFile));
             // TODO setup run configuration
         } catch (IOException ignore) {/*unlucky*/}

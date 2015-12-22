@@ -1,9 +1,10 @@
 package com.sqide.sdk;
 
-import com.sqide.util.SquirrelConstants;
-import com.sqide.SquirrelIcons;
 import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.sqide.SquirrelIcons;
+import com.sqide.util.SquirrelConstants;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,8 @@ public class SquirrelSdkType extends SdkType {
 
     @Nullable
     @Override
-    public AdditionalDataConfigurable createAdditionalDataConfigurable(@NotNull SdkModel sdkModel, @NotNull SdkModificator sdkModificator) {
+    public AdditionalDataConfigurable createAdditionalDataConfigurable(@NotNull SdkModel sdkModel, @NotNull
+    SdkModificator sdkModificator) {
         return null;
     }
 
@@ -105,5 +107,21 @@ public class SquirrelSdkType extends SdkType {
     @Override
     public String getPresentableName() {
         return "Squirrel SDK";
+    }
+
+    @Override
+    public void setupSdkPaths(@NotNull Sdk sdk) {
+        String versionString = sdk.getVersionString();
+        if (versionString == null) throw new RuntimeException("SDK version is not defined");
+        SdkModificator modificator = sdk.getSdkModificator();
+        String path = sdk.getHomePath();
+        if (path == null) return;
+        modificator.setHomePath(path);
+
+        for (VirtualFile file : SquirrelSdkUtil.getSdkDirectoriesToAttach(path, versionString)) {
+            modificator.addRoot(file, OrderRootType.CLASSES);
+            modificator.addRoot(file, OrderRootType.SOURCES);
+        }
+        modificator.commitChanges();
     }
 }

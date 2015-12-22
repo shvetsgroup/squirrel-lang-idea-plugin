@@ -41,8 +41,7 @@
         <library.presentationProvider implementation="com.sqide.sdk.SquirrelSdkLibraryPresentationProvider"/>
         <editorNotificationProvider implementation="com.sqide.inspections.WrongSdkConfigurationNotificationProvider"/>
 
-        <projectConfigurable groupId="language" provider="com.sqide.configuration.SquirrelConfigurableProvider" dynamic="true"
-                             bundle="do.not.touch.this.attribute"/>
+        <projectConfigurable groupId="language" provider="com.sqide.configuration.SquirrelConfigurableProvider" dynamic="true"/>
 
 
         <runConfigurationProducer implementation="com.sqide.runner.SquirrelRunConfigProducer"/>

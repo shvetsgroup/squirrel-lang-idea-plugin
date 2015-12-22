@@ -1,8 +1,5 @@
 package com.sqide.configuration;
 
-import com.sqide.sdk.SquirrelSdkService;
-import com.sqide.sdk.SquirrelSdkUtil;
-import com.sqide.sdk.SquirrelSmallIDEsSdkService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -34,6 +31,9 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
+import com.sqide.sdk.SquirrelSdkService;
+import com.sqide.sdk.SquirrelSdkUtil;
+import com.sqide.sdk.SquirrelSmallIDEsSdkService;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +63,8 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
         if (dialogMode) {
             myComponent.setPreferredSize(new Dimension(400, -1));
         }
-        FileChooserDescriptor chooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle("Select Squirrel Root Directory");
+        FileChooserDescriptor chooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                .withTitle("Select Squirrel Root Directory");
         mySdkPathField.addBrowseFolderListener(myProject, new MyBrowseFolderListener(chooserDescriptor));
         listenForPathUpdate();
         Disposer.register(myDisposable, mySdkPathField);
@@ -183,7 +184,8 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
             myAlarm.addRequest(new Runnable() {
                 @Override
                 public void run() {
-                    final String version = SquirrelSdkUtil.retrieveSquirrelVersion(SquirrelSdkUtil.adjustSdkPath(sdkPath));
+                    final String version = SquirrelSdkUtil.retrieveSquirrelVersion(SquirrelSdkUtil.adjustSdkPath
+                            (sdkPath));
                     ApplicationManager.getApplication().invokeLater(new Runnable() {
                         @Override
                         public void run() {
@@ -236,7 +238,8 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
 
     private class MyBrowseFolderListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
         public MyBrowseFolderListener(@NotNull FileChooserDescriptor descriptor) {
-            super("Select Squirrel SDK path", "", mySdkPathField, myProject, descriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
+            super("Select Squirrel SDK path", "", mySdkPathField, myProject, descriptor, TextComponentAccessor
+                    .TEXT_FIELD_WHOLE_TEXT);
         }
 
         @Nullable

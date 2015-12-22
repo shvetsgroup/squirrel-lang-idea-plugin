@@ -15,24 +15,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SquirrelSdkUtil {
-    private static final Pattern SQUIRREL_VERSION_PATTERN = Pattern.compile("#define SQUIRREL_VERSION\t_SC\\(\"Squirrel ([0-9\\.]*?) stable\"\\)");
+    private static final Pattern SQUIRREL_VERSION_PATTERN = Pattern.compile("#define SQUIRREL_VERSION\t_SC\\" +
+            "(\"Squirrel ([0-9\\.]*?) stable\"\\)");
 
     // todo test
     @Nullable
     public static VirtualFile suggestSdkDirectory() {
-        if (SystemInfo.isMac) {
-            String macPorts = "/opt/local/lib/squirrel";
-            String homeBrew = "/usr/local/Cellar/squirrel";
-            File file = FileUtil.findFirstThatExist(macPorts, homeBrew);
-            if (file != null) {
-                return LocalFileSystem.getInstance().findFileByIoFile(file);
-            }
-        }
         if (SystemInfo.isMac || SystemInfo.isLinux) {
             String fromEnv = suggestSdkDirectoryPathFromEnv();
             if (fromEnv != null) {
@@ -40,6 +36,14 @@ public class SquirrelSdkUtil {
             }
             VirtualFile usrLocal = LocalFileSystem.getInstance().findFileByPath("/usr/local/squirrel");
             if (usrLocal != null) return usrLocal;
+        }
+        if (SystemInfo.isMac) {
+            String macPorts = "/opt/local/lib/squirrel";
+            String homeBrew = "/usr/local/Cellar/squirrel";
+            File file = FileUtil.findFirstThatExist(macPorts, homeBrew);
+            if (file != null) {
+                return LocalFileSystem.getInstance().findFileByIoFile(file);
+            }
         }
         return null;
     }
@@ -101,38 +105,40 @@ public class SquirrelSdkUtil {
         }
 
         public Version(String version) {
-            if(version == null)
+            if (version == null)
                 throw new IllegalArgumentException("Version can not be null");
-            if(!version.matches("[0-9]+(\\.[0-9]+)*"))
+            if (!version.matches("[0-9]+(\\.[0-9]+)*"))
                 throw new IllegalArgumentException("Invalid version format");
             this.version = version;
         }
 
-        @Override public int compareTo(Version that) {
-            if(that == null)
+        @Override
+        public int compareTo(Version that) {
+            if (that == null)
                 return 1;
             String[] thisParts = this.get().split("\\.");
             String[] thatParts = that.get().split("\\.");
             int length = Math.max(thisParts.length, thatParts.length);
-            for(int i = 0; i < length; i++) {
+            for (int i = 0; i < length; i++) {
                 int thisPart = i < thisParts.length ?
                         Integer.parseInt(thisParts[i]) : 0;
                 int thatPart = i < thatParts.length ?
                         Integer.parseInt(thatParts[i]) : 0;
-                if(thisPart < thatPart)
+                if (thisPart < thatPart)
                     return -1;
-                if(thisPart > thatPart)
+                if (thisPart > thatPart)
                     return 1;
             }
             return 0;
         }
 
-        @Override public boolean equals(Object that) {
-            if(this == that)
+        @Override
+        public boolean equals(Object that) {
+            if (this == that)
                 return true;
-            if(that == null)
+            if (that == null)
                 return false;
-            if(this.getClass() != that.getClass())
+            if (this.getClass() != that.getClass())
                 return false;
             return this.compareTo((Version) that) == 0;
         }
@@ -140,7 +146,8 @@ public class SquirrelSdkUtil {
     }
 
     /**
-     * Check if we've got the directory with list of version directories. If so, grab the last one which have a bin in it.
+     * Check if we've got the directory with list of version directories. If so, grab the last one which have a bin
+     * in it.
      */
     @NotNull
     public static String adjustSdkPath(@NotNull String path) {
@@ -173,7 +180,15 @@ public class SquirrelSdkUtil {
     }
 
     @NotNull
-    public static Collection<VirtualFile> getSdkDirectoriesToAttach(@NotNull String sdkPath, @NotNull String versionString) {
+    public static Collection<VirtualFile> getSdkDirectoriesToAttach(@NotNull String sdkPath, @NotNull String
+            versionString) {
+        String srcPath = "";
+        // scr is enough at the moment, possible process binaries from pkg
+        VirtualFile src = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(FileUtil.join(sdkPath,
+                srcPath)));
+        if (src != null && src.isDirectory()) {
+            return Collections.singletonList(src);
+        }
         return Collections.emptyList();
     }
 
@@ -206,12 +221,14 @@ public class SquirrelSdkUtil {
 
     final Module module = moduleFromContext;
     UserDataHolder holder = ObjectUtils.notNull(module, project);
-    VirtualFile file = CachedValuesManager.getManager(context.getProject()).getCachedValue(holder, new CachedValueProvider<VirtualFile>() {
+    VirtualFile file = CachedValuesManager.getManager(context.getProject()).getCachedValue(holder, new
+    CachedValueProvider<VirtualFile>() {
       @Nullable
       @Override
       public Result<VirtualFile> compute() {
         VirtualFile sdkSrcDir = getSdkSrcDir(project, module);
-        VirtualFile result = sdkSrcDir != null ? sdkSrcDir.findFileByRelativePath(SquirrelConstants.BUILTIN_FILE_PATH) : null;
+        VirtualFile result = sdkSrcDir != null ? sdkSrcDir.findFileByRelativePath(SquirrelConstants
+        .BUILTIN_FILE_PATH) : null;
         return Result.create(result, getSdkAndLibrariesCacheDependencies(project, module, result));
       }
     });
@@ -222,7 +239,8 @@ public class SquirrelSdkUtil {
   }
 
   @Nullable
-  public static VirtualFile findExecutableInSquirrelPath(@NotNull String executableName, @NotNull Project project, @Nullable Module module) {
+  public static VirtualFile findExecutableInSquirrelPath(@NotNull String executableName, @NotNull Project project,
+  @Nullable Module module) {
     executableName = getBinaryFileNameForPath(executableName);
     Collection<VirtualFile> roots = getSquirrelPathRoots(project, module);
     for (VirtualFile file : roots) {
@@ -234,7 +252,8 @@ public class SquirrelSdkUtil {
   }
 
   /**
-   * @return concatination of {@link this#getSdkSrcDir(Project, Module)} and {@link this#getSquirrelPathSources(Project, Module)}
+   * @return concatination of
+   * {@link this#getSdkSrcDir(Project, Module)} and {@link this#getSquirrelPathSources(Project, Module)}
    */
   /*@NotNull
   public static Collection<VirtualFile> getSourcesPathsToLookup(@NotNull Project project, @Nullable Module module) {
@@ -250,7 +269,8 @@ public class SquirrelSdkUtil {
     if (SquirrelApplicationLibrariesService.getInstance().isUseSquirrelPathFromSystemEnvironment()) {
       roots.addAll(getSquirrelPathsRootsFromEnvironment());
     }
-    roots.addAll(module != null ? SquirrelLibrariesService.getUserDefinedLibraries(module) : SquirrelLibrariesService.getUserDefinedLibraries(project));
+    roots.addAll(module != null ? SquirrelLibrariesService.getUserDefinedLibraries(module) : SquirrelLibrariesService
+    .getUserDefinedLibraries(project));
     return roots;
   }
 
@@ -258,20 +278,24 @@ public class SquirrelSdkUtil {
   public static Collection<VirtualFile> getSquirrelPathSources(@NotNull Project project, @Nullable Module module) {
     Collection<VirtualFile> result = newLinkedHashSet();
     if (module != null && SquirrelSdkService.getInstance(project).isAppEngineSdk(module)) {
-      ContainerUtil.addAllNotNull(result, ContainerUtil.mapNotNull(YamlFilesModificationTracker.getYamlFiles(project, module),
+      ContainerUtil.addAllNotNull(result, ContainerUtil.mapNotNull(YamlFilesModificationTracker.getYamlFiles(project,
+       module),
                                                                    SquirrelUtil.RETRIEVE_FILE_PARENT_FUNCTION));
     }
-    result.addAll(ContainerUtil.mapNotNull(getSquirrelPathRoots(project, module), new RetrieveSubDirectoryOrSelfFunction("src")));
+    result.addAll(ContainerUtil.mapNotNull(getSquirrelPathRoots(project, module), new
+    RetrieveSubDirectoryOrSelfFunction("src")));
     return result;
   }
 
   @NotNull
   public static Collection<VirtualFile> getSquirrelPathBins(@NotNull Project project, @Nullable Module module) {
     Collection<VirtualFile> result = newLinkedHashSet(ContainerUtil.mapNotNull(getSquirrelPathRoots(project, module),
-                                                                               new RetrieveSubDirectoryOrSelfFunction("bin")));
+                                                                               new RetrieveSubDirectoryOrSelfFunction
+                                                                               ("bin")));
     String executableSquirrelPath = SquirrelSdkService.getInstance(project).getSquirrelExecutablePath(module);
     if (executableSquirrelPath != null) {
-      VirtualFile executable = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(executableSquirrelPath));
+      VirtualFile executable = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl
+      (executableSquirrelPath));
       if (executable != null) ContainerUtil.addIfNotNull(result, executable.getParent());
     }
     return result;
@@ -289,12 +313,14 @@ public class SquirrelSdkUtil {
 
   @NotNull
   public static String retrieveSquirrelPath(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(ContainerUtil.map(getSquirrelPathRoots(project, module), SquirrelUtil.RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
+    return StringUtil.join(ContainerUtil.map(getSquirrelPathRoots(project, module), SquirrelUtil
+    .RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
   }
 
   @NotNull
   public static String retrieveEnvironmentPathForSquirrel(@NotNull Project project, @Nullable Module module) {
-    return StringUtil.join(ContainerUtil.map(getSquirrelPathBins(project, module), SquirrelUtil.RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
+    return StringUtil.join(ContainerUtil.map(getSquirrelPathBins(project, module), SquirrelUtil
+    .RETRIEVE_FILE_PATH_FUNCTION), File.pathSeparator);
   }
 
   @NotNull
@@ -310,7 +336,8 @@ public class SquirrelSdkUtil {
   }
 
   @Nullable
-  public static VirtualFile findFileByRelativeToLibrariesPath(@NotNull String path, @NotNull Project project, @Nullable Module module) {
+  public static VirtualFile findFileByRelativeToLibrariesPath(@NotNull String path, @NotNull Project project,
+  @Nullable Module module) {
     for (VirtualFile root : getSourcesPathsToLookup(project, module)) {
       VirtualFile file = root.findFileByRelativePath(path);
       if (file != null) {
@@ -339,7 +366,8 @@ public class SquirrelSdkUtil {
   }
 
   @Nullable
-  public static String getPathRelativeToSdkAndLibraries(@NotNull VirtualFile file, @Nullable Project project, @Nullable Module module) {
+  public static String getPathRelativeToSdkAndLibraries(@NotNull VirtualFile file, @Nullable Project project,
+  @Nullable Module module) {
     if (project != null) {
       String result = null;
       for (VirtualFile root : getSourcesPathsToLookup(project, module)) {
@@ -366,25 +394,16 @@ public class SquirrelSdkUtil {
   }
 
   @NotNull
-  public static Collection<VirtualFile> getSdkDirectoriesToAttach(@NotNull String sdkPath, @NotNull String versionString) {
-    String srcPath = getSrcLocation(versionString);
-    // scr is enough at the moment, possible process binaries from pkg
-    VirtualFile src = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(FileUtil.join(sdkPath, srcPath)));
-    if (src != null && src.isDirectory()) {
-      return Collections.singletonList(src);
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
   public static Collection<Object> getSdkAndLibrariesCacheDependencies(@NotNull PsiElement context, Object... extra) {
     return getSdkAndLibrariesCacheDependencies(context.getProject(), ModuleUtilCore.findModuleForPsiElement(context),
                                                ArrayUtil.append(extra, context));
   }
 
   @NotNull
-  public static Collection<Object> getSdkAndLibrariesCacheDependencies(@NotNull Project project, @Nullable Module module, Object... extra) {
-    Collection<Object> dependencies = ContainerUtil.newArrayList((Object[])SquirrelLibrariesService.getModificationTrackers(project, module));
+  public static Collection<Object> getSdkAndLibrariesCacheDependencies(@NotNull Project project, @Nullable Module
+  module, Object... extra) {
+    Collection<Object> dependencies = ContainerUtil.newArrayList((Object[])SquirrelLibrariesService
+    .getModificationTrackers(project, module));
     ContainerUtil.addAllNotNull(dependencies, SquirrelSdkService.getInstance(project));
     ContainerUtil.addAllNotNull(dependencies, extra);
     return dependencies;
