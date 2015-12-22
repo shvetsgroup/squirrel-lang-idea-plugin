@@ -10,11 +10,13 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.sqide.sdk.SquirrelSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +46,12 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
 
     @Override
     public Icon getBigIcon() {
-        return SquirrelIcons.SQUIRREL; // todo replace
+        return SquirrelIcons.SQUIRREL;
     }
 
     @Override
     public Icon getNodeIcon() {
-        return SquirrelIcons.SQUIRREL; // todo replace
+        return SquirrelIcons.SQUIRREL;
     }
 
     @Override
@@ -66,6 +68,11 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
     @Override
     public ModuleWizardStep getCustomOptionsStep(final WizardContext context, final Disposable parentDisposable) {
         return null;
+    }
+
+    @Override
+    public boolean isSuitableSdkType(SdkTypeId sdkType) {
+        return sdkType instanceof SquirrelSdkType;
     }
 
     @Override

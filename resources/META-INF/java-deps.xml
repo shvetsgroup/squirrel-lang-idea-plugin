@@ -4,6 +4,6 @@
     <moduleConfigurationEditorProvider implementation="com.sqide.configuration.SquirrelModuleEditorsProvider" order="first"/>
     <editorNotificationProvider implementation="com.sqide.inspections.WrongModuleTypeNotificationProvider"/>
     <projectStructureDetector implementation="com.sqide.project.SquirrelProjectStructureDetector"/>
-    <!--<projectService serviceInterface="com.sqidekService" serviceImplementation="com.goide.sdk.GoIdeaSdkService" overrides="true"/>-->
+    <projectService serviceInterface="com.sqide.sdk.SquirrelSdkService" serviceImplementation="com.sqide.sdk.SquirrelIdeaSdkService" overrides="true"/>
   </extensions>
 </idea-plugin>

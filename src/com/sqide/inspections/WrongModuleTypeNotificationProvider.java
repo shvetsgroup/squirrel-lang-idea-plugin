@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.containers.ContainerUtil;
+import com.sqide.sdk.SquirrelSdkService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -57,7 +58,7 @@ public class WrongModuleTypeNotificationProvider extends EditorNotifications.Pro
     public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
         if (file.getFileType() != SquirrelFileType.INSTANCE) return null;
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-        return (true || module == null || getIgnoredModules(myProject).contains(module.getName())) ? null : createPanel(myProject, module); // TODO add SDK checks instead of true.
+        return (module == null || SquirrelSdkService.getInstance(myProject).isSquirrelModule(module) || getIgnoredModules(myProject).contains(module.getName())) ? null : createPanel(myProject, module); // TODO add SDK checks instead of true.
     }
 
     @NotNull

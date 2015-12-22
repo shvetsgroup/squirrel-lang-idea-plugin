@@ -5,7 +5,7 @@ import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.sqide.util.SqFormatterUtil;
+import com.sqide.util.SquirrelFormatterUtil;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
 import com.sqide.formatter.settings.SquirrelCodeStyleSettings;
@@ -61,7 +61,7 @@ public class SquirrelSpacingProcessor {
                 if (type1 == LBRACE && type2 == RBRACE) {
                     return addSingleSpaceIf(sqSettings.SPACE_WITHIN_EMPTY_BRACES, getBraceSettingsForElement(parent) == CommonCodeStyleSettings.NEXT_LINE);
                 }
-                else if (SqFormatterUtil.isSimpleBlock(myNode) && getKeepSimpleInOneLineSettingsForElement(parent)) {
+                else if (SquirrelFormatterUtil.isSimpleBlock(myNode) && getKeepSimpleInOneLineSettingsForElement(parent)) {
                     return Spacing.createDependentLFSpacing(cmSettings.SPACE_WITHIN_BRACES ? 1 : 0, 1, myNode.getTextRange(), false, 0);
                 }
                 else {
@@ -246,13 +246,13 @@ public class SquirrelSpacingProcessor {
         // -----------------------
 
         if (type2 == ELSE) {
-            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_ELSE_KEYWORD, cmSettings.ELSE_ON_NEW_LINE, SqFormatterUtil.isSimpleStatement(node1));
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_ELSE_KEYWORD, cmSettings.ELSE_ON_NEW_LINE, SquirrelFormatterUtil.isSimpleStatement(node1));
         }
         else if (type2 == WHILE) {
-            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_WHILE_KEYWORD, cmSettings.WHILE_ON_NEW_LINE, SqFormatterUtil.isSimpleStatement(node1));
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_WHILE_KEYWORD, cmSettings.WHILE_ON_NEW_LINE, SquirrelFormatterUtil.isSimpleStatement(node1));
         }
         else if (type2 == CATCH_PART) {
-            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_CATCH_KEYWORD, cmSettings.CATCH_ON_NEW_LINE, SqFormatterUtil.isSimpleStatement(node1));
+            return addSingleSpaceIf(cmSettings.SPACE_BEFORE_CATCH_KEYWORD, cmSettings.CATCH_ON_NEW_LINE, SquirrelFormatterUtil.isSimpleStatement(node1));
         }
 
         // Spacing Within
@@ -445,7 +445,7 @@ public class SquirrelSpacingProcessor {
         IElementType parentType = child2.getTreeParent().getElementType();
 
         // Don't wrap simple block event if line breaks set to NEXT_LINE (unless there are manual line breaks)
-        if (braceStyleSetting == CommonCodeStyleSettings.NEXT_LINE && SqFormatterUtil.isSimpleBlock(child2) &&
+        if (braceStyleSetting == CommonCodeStyleSettings.NEXT_LINE && SquirrelFormatterUtil.isSimpleBlock(child2) &&
                 ((parentType == FUNCTION_BODY && cmSettings.KEEP_SIMPLE_METHODS_IN_ONE_LINE) ||
                         (parentType == CLASS_DECLARATION && cmSettings.KEEP_SIMPLE_CLASSES_IN_ONE_LINE) ||
                         (parentType != FUNCTION_BODY && parentType != CLASS_DECLARATION && cmSettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE))

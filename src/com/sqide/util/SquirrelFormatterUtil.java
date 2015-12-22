@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.sqide.SquirrelTokenTypes.*;
 import static com.sqide.SquirrelTokenTypesSets.*;
 
-public class SqFormatterUtil {
+public class SquirrelFormatterUtil {
     /**
      * True of element is not block. Returns true even for "if (true) {};"
      */

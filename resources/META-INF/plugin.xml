@@ -35,6 +35,19 @@
         <codeStyleSettingsProvider implementation="com.sqide.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
         <langCodeStyleSettingsProvider implementation="com.sqide.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
         <directoryProjectGenerator implementation="com.sqide.SquirrelProjectGenerator"/>
+
+        <sdkType implementation="com.sqide.sdk.SquirrelSdkType"/>
+        <projectService serviceInterface="com.sqide.sdk.SquirrelSdkService" serviceImplementation="com.sqide.sdk.SquirrelSmallIDEsSdkService" overrides="false"/>
+        <library.presentationProvider implementation="com.sqide.sdk.SquirrelSdkLibraryPresentationProvider"/>
+        <editorNotificationProvider implementation="com.sqide.inspections.WrongSdkConfigurationNotificationProvider"/>
+
+        <projectConfigurable groupId="language" provider="com.sqide.configuration.SquirrelConfigurableProvider" dynamic="true"
+                             bundle="do.not.touch.this.attribute"/>
+
+
+        <runConfigurationProducer implementation="com.sqide.runner.SquirrelRunConfigProducer"/>
+        <configurationType implementation="com.sqide.runner.SquirrelConfigurationType"/>
+        <programRunner implementation="com.sqide.runner.SquirrelRunner"/>
     </extensions>
 
     <application-components>

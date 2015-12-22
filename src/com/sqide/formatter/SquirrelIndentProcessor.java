@@ -9,7 +9,7 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.tree.IElementType;
 import com.sqide.formatter.settings.SquirrelCodeStyleSettings;
-import com.sqide.util.SqFormatterUtil;
+import com.sqide.util.SquirrelFormatterUtil;
 import com.sqide.util.UsefulPsiTreeUtil;
 
 import static com.sqide.SquirrelTokenTypes.*;
@@ -113,13 +113,13 @@ public class SquirrelIndentProcessor {
 
         // --- Statements
 
-        if (parentType == ENUM_DECLARATION && SqFormatterUtil.isBetweenBraces(node)) {
+        if (parentType == ENUM_DECLARATION && SquirrelFormatterUtil.isBetweenBraces(node)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == TABLE_EXPRESSION && SqFormatterUtil.isBetweenBraces(node)) {
+        if (parentType == TABLE_EXPRESSION && SquirrelFormatterUtil.isBetweenBraces(node)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == FUNCTION_BODY && SqFormatterUtil.isSimpleStatement(node)) {
+        if (parentType == FUNCTION_BODY && SquirrelFormatterUtil.isSimpleStatement(node)) {
             return Indent.getNormalIndent();
         }
 
@@ -146,16 +146,16 @@ public class SquirrelIndentProcessor {
             return Indent.getNormalIndent();
         }
 
-        if (parentType == FOR_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
+        if (parentType == FOR_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == FOREACH_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
+        if (parentType == FOREACH_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == WHILE_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
+        if (parentType == WHILE_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
-        if (parentType == DO_WHILE_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == DO) {
+        if (parentType == DO_WHILE_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == DO) {
             return Indent.getNormalIndent();
         }
         if (parentType == SWITCH_STATEMENT && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
@@ -164,13 +164,13 @@ public class SquirrelIndentProcessor {
         if (STATEMENTS.contains(elementType) &&  (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == IF_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && (prevSiblingType == RPAREN || prevSiblingType == ELSE)) {
+        if (parentType == IF_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && (prevSiblingType == RPAREN || prevSiblingType == ELSE)) {
             return Indent.getNormalIndent();
         }
-        if (parentType == TRY_STATEMENT && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == TRY) {
+        if (parentType == TRY_STATEMENT && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == TRY) {
             return Indent.getNormalIndent();
         }
-        if (parentType == CATCH_PART && SqFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
+        if (parentType == CATCH_PART && SquirrelFormatterUtil.isSimpleStatement(node) && prevSiblingType == RPAREN) {
             return Indent.getNormalIndent();
         }
 
