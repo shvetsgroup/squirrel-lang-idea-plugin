@@ -1,5 +1,5 @@
 <idea-plugin version="2">
-    <id>com.squirrelplugin.test</id>
+    <id>com.sqide.test</id>
     <name>Squirrel</name>
     <version>1.0</version>
     <vendor email="neochief@shvetsgroup.com" url="http://shvetsgroup.com">Shvets Group</vendor>
@@ -25,16 +25,16 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <fileTypeFactory implementation="com.squirrelplugin.SquirrelFileTypeFactory"/>
-        <lang.parserDefinition language="Squirrel" implementationClass="com.squirrelplugin.SquirrelParserDefinition"/>
-        <lang.syntaxHighlighterFactory language="Squirrel" implementationClass="com.squirrelplugin.highlighting.SquirrelSyntaxHighlighterFactory"/>
-        <lang.foldingBuilder language="Squirrel" implementationClass="com.squirrelplugin.folding.SquirrelFoldingBuilder"/>
-        <lang.formatter language="Squirrel" implementationClass="com.squirrelplugin.formatter.SquirrelFormattingModelBuilder"/>
-        <lang.braceMatcher language="Squirrel" implementationClass="com.squirrelplugin.SquirrelBraceMatcher"/>
-        <lang.commenter language="Squirrel" implementationClass="com.squirrelplugin.SquirrelCommenter"/>
-        <codeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
-        <langCodeStyleSettingsProvider implementation="com.squirrelplugin.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
-        <directoryProjectGenerator implementation="com.squirrelplugin.SquirrelProjectGenerator"/>
+        <fileTypeFactory implementation="com.sqide.SquirrelFileTypeFactory"/>
+        <lang.parserDefinition language="Squirrel" implementationClass="com.sqide.SquirrelParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="Squirrel" implementationClass="com.sqide.highlighting.SquirrelSyntaxHighlighterFactory"/>
+        <lang.foldingBuilder language="Squirrel" implementationClass="com.sqide.folding.SquirrelFoldingBuilder"/>
+        <lang.formatter language="Squirrel" implementationClass="com.sqide.formatter.SquirrelFormattingModelBuilder"/>
+        <lang.braceMatcher language="Squirrel" implementationClass="com.sqide.SquirrelBraceMatcher"/>
+        <lang.commenter language="Squirrel" implementationClass="com.sqide.SquirrelCommenter"/>
+        <codeStyleSettingsProvider implementation="com.sqide.formatter.settings.SquirrelCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider implementation="com.sqide.formatter.settings.SquirrelLanguageCodeStyleSettingsProvider"/>
+        <directoryProjectGenerator implementation="com.sqide.SquirrelProjectGenerator"/>
     </extensions>
 
     <application-components>
@@ -46,7 +46,7 @@
     </project-components>
 
     <actions>
-        <action id="Squirrel.NewSquirrelFile" class="com.squirrelplugin.actions.NewSquirrelFileAction"
+        <action id="Squirrel.NewSquirrelFile" class="com.sqide.actions.NewSquirrelFileAction"
                 text="Squirrel file" description="Create new Squirrel file">
             <add-to-group group-id="NewGroup" relative-to-action="NewFile" anchor="after"/>
         </action>

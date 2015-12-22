@@ -1,9 +1,9 @@
 <idea-plugin version="2">
   <extensions defaultExtensionNs="com.intellij">
-    <moduleType id="SQUIRREL_MODULE" implementationClass="com.squirrelplugin.SquirrelModuleType"/>
-    <moduleConfigurationEditorProvider implementation="com.squirrelplugin.configuration.SquirrelModuleEditorsProvider" order="first"/>
-    <editorNotificationProvider implementation="com.squirrelplugin.inspections.WrongModuleTypeNotificationProvider"/>
-    <projectStructureDetector implementation="com.squirrelplugin.project.SquirrelProjectStructureDetector"/>
-    <!--<projectService serviceInterface="com.squirrelplugin.sdk.GoSdkService" serviceImplementation="com.goide.sdk.GoIdeaSdkService" overrides="true"/>-->
+    <moduleType id="SQUIRREL_MODULE" implementationClass="com.sqide.SquirrelModuleType"/>
+    <moduleConfigurationEditorProvider implementation="com.sqide.configuration.SquirrelModuleEditorsProvider" order="first"/>
+    <editorNotificationProvider implementation="com.sqide.inspections.WrongModuleTypeNotificationProvider"/>
+    <projectStructureDetector implementation="com.sqide.project.SquirrelProjectStructureDetector"/>
+    <!--<projectService serviceInterface="com.sqidekService" serviceImplementation="com.goide.sdk.GoIdeaSdkService" overrides="true"/>-->
   </extensions>
 </idea-plugin>
