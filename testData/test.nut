@@ -1,1 +1,3 @@
-try {1+1} catch (a) {}
+local a = {b = {c = {d = 3}}}
+::print(a.b
+    .c.d)

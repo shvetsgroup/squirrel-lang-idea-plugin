@@ -31,9 +31,9 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
+import com.sqide.SquirrelBundle;
 import com.sqide.sdk.SquirrelSdkService;
 import com.sqide.sdk.SquirrelSdkUtil;
-import com.sqide.sdk.SquirrelSmallIDEsSdkService;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +55,7 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
     private JPanel myComponent;
     private TextFieldWithBrowseButton mySdkPathField;
     private JPanel myVersionPanel;
+    private JEditorPane pathToSquirrelDistributionEditorPane;
     private JBLabel myVersionLabel;
     private Color myDefaultLabelColor;
 
@@ -64,7 +65,7 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
             myComponent.setPreferredSize(new Dimension(400, -1));
         }
         FileChooserDescriptor chooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
-                .withTitle("Select Squirrel Root Directory");
+                .withTitle(SquirrelBundle.message("squirrel.sdk.select.root.dir"));
         mySdkPathField.addBrowseFolderListener(myProject, new MyBrowseFolderListener(chooserDescriptor));
         listenForPathUpdate();
         Disposer.register(myDisposable, mySdkPathField);
@@ -80,8 +81,8 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
                 }
 
                 LibraryTable table = LibraryTablesRegistrar.getInstance().getLibraryTable(myProject);
-                Library get = table.getLibraryByName(SquirrelSmallIDEsSdkService.LIBRARY_NAME);
-                Library lib = get != null ? get : table.createLibrary(SquirrelSmallIDEsSdkService.LIBRARY_NAME);
+                Library get = table.getLibraryByName(SquirrelSdkService.LIBRARY_NAME);
+                Library lib = get != null ? get : table.createLibrary(SquirrelSdkService.LIBRARY_NAME);
 
                 Library.ModifiableModel libraryModel = lib.getModifiableModel();
                 String libUrl = ArrayUtil.getFirstElement(lib.getUrls(OrderRootType.CLASSES));
@@ -141,7 +142,7 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
     @Nls
     @Override
     public String getDisplayName() {
-        return "Squirrel SDK";
+        return SquirrelBundle.message("squirrel.sdk");
     }
 
     @Nullable
@@ -216,9 +217,9 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
 
         myVersionPanel = new JPanel(new JBCardLayout());
         JPanel gettingVersionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        AsyncProcessIcon gettingVersionIcon = new AsyncProcessIcon("Getting Squirrel version");
+        AsyncProcessIcon gettingVersionIcon = new AsyncProcessIcon(SquirrelBundle.message("getting.squirrel.sdk.version"));
         gettingVersionPanel.add(gettingVersionIcon);
-        gettingVersionPanel.add(new JLabel("Getting..."));
+        gettingVersionPanel.add(new JLabel(SquirrelBundle.message("getting")));
         myVersionPanel.add(gettingVersionPanel, VERSION_GETTING);
         myVersionPanel.add(myVersionLabel, VERSION_RESULT);
 
@@ -238,7 +239,7 @@ public class SquirrelSdkConfigurable implements SearchableConfigurable, Configur
 
     private class MyBrowseFolderListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
         public MyBrowseFolderListener(@NotNull FileChooserDescriptor descriptor) {
-            super("Select Squirrel SDK path", "", mySdkPathField, myProject, descriptor, TextComponentAccessor
+            super(SquirrelBundle.message("squirrel.sdk.select.root.dir"), "", mySdkPathField, myProject, descriptor, TextComponentAccessor
                     .TEXT_FIELD_WHOLE_TEXT);
         }
 

@@ -2,7 +2,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <moduleType id="SQUIRREL_MODULE" implementationClass="com.sqide.SquirrelModuleType"/>
     <moduleConfigurationEditorProvider implementation="com.sqide.configuration.SquirrelModuleEditorsProvider" order="first"/>
-    <editorNotificationProvider implementation="com.sqide.inspections.WrongModuleTypeNotificationProvider"/>
     <projectStructureDetector implementation="com.sqide.project.SquirrelProjectStructureDetector"/>
     <projectService serviceInterface="com.sqide.sdk.SquirrelSdkService" serviceImplementation="com.sqide.sdk.SquirrelIdeaSdkService" overrides="true"/>
   </extensions>

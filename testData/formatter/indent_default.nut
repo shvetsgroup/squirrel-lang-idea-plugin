@@ -22,14 +22,20 @@ local a = a
     ? b
     : a
 
-{ print(); print(); }
-
-{ print();
-    print(); }
+{
+    print();
+    print();
+}
 
 {
     print();
-    print(); }
+    print();
+}
+
+{
+    print();
+    print();
+}
 
 {
     print();
@@ -48,31 +54,26 @@ function a(p,
 }
 
 function a(p
-    ,b
-    ,v
-    ,...)
-    print();
+    , b
+    , v
+    , ...) print();
 
 local a = function() {
     print();
 }
 
-local a = function()
-    print();
+local a = function() print();
 
-local a = function()
-    function b()
-        print();
+local a = function() function b() print();
 
 class a {
     a = 2;
-    constructor(){
+    constructor() {
         print()
     }
-    function a()
-        print();
-    b = class{
-        constructor(){
+    function a() print();
+    b = class {
+        constructor() {
             print()
         }
     }
@@ -82,49 +83,39 @@ for (;;) {
     print()
 }
 
-for (;;)
-    print()
+for (;;) print()
 
 foreach (test, i in exp) {
     print()
 }
 
-foreach (test, i in exp)
-    print()
+foreach (test, i in exp) print()
 
-while(1)
-    print()
+while (1) print()
 
-while(1) {
+while (1) {
     print()
 }
 
-do
-    print()
-while(1)
+do print()
+while (1)
 
 do {
     print()
-} while(1)
+} while (1)
 
-if(1)
-    print()
+if (1) print()
 
-if(1) {
+if (1) {
     print()
 }
 
-if(1)
-    if(1)
-        print()
+if (1) if (1) print()
 
-if(1) {
+if (1) {
     print()
-    if(1)
-        print()
-}
-else
-    print()
+    if (1) print()
+} else print()
 
 switch (a) {
     case 1: case 2:
@@ -134,20 +125,15 @@ switch (a) {
         print(123);
 }
 
-try
-    print()
-catch (a)
-    print()
+try print()
+catch (a) print()
 
 try {
     print()
-}
-catch (a)
-    print()
+} catch (a) print()
 
 try {
     print()
-}
-catch (a) {
+} catch (a) {
     print()
 }

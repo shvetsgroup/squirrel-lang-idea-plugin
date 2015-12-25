@@ -4,6 +4,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.sqide.SquirrelBundle;
 import com.sqide.sdk.SquirrelSdkService;
 import com.sqide.util.SquirrelConstants;
 import org.jetbrains.annotations.Nls;
@@ -22,11 +23,7 @@ public class SquirrelConfigurableProvider extends ConfigurableProvider {
     @Override
     public Configurable createConfigurable() {
         Configurable sdkConfigurable = SquirrelSdkService.getInstance(myProject).createSdkConfigurable();
-        if (sdkConfigurable != null) {
-            return new SquirrelCompositeConfigurable(sdkConfigurable);
-        } else {
-            return new SquirrelCompositeConfigurable();
-        }
+        return new SquirrelCompositeConfigurable(sdkConfigurable);
     }
 
     private static class SquirrelCompositeConfigurable extends SearchableConfigurable.Parent.Abstract {
@@ -44,13 +41,13 @@ public class SquirrelConfigurableProvider extends ConfigurableProvider {
         @NotNull
         @Override
         public String getId() {
-            return "squirrel";
+            return SquirrelConstants.SQUIRREL;
         }
 
         @Nls
         @Override
         public String getDisplayName() {
-            return SquirrelConstants.SQUIRREL;
+            return SquirrelBundle.message("squirrel.title");
         }
 
         @Nullable

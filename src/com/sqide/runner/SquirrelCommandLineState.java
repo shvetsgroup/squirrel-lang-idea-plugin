@@ -10,6 +10,7 @@ import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.util.ProgramParametersUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.sqide.SquirrelBundle;
 import com.sqide.sdk.SquirrelSdkService;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,14 +28,13 @@ public class SquirrelCommandLineState extends CommandLineState {
         String workingDir = ProgramParametersUtil.getWorkingDir(runConfig, getEnvironment().getProject(), runConfig
                 .getConfigurationModule().getModule());
 
-        String executable = SquirrelSdkService.getInstance(runConfig.getProject()).getSquirrelExecutablePath
-                (runConfig.getConfigurationModule().getModule());
-        if (StringUtil.isEmptyOrSpaces(executable)) {
-            throw new ExecutionException("Squirrel SDK not configured.");
+        String compiler = runConfig.getCompilerPath();
+        if (StringUtil.isEmptyOrSpaces(compiler)) {
+            throw new ExecutionException(SquirrelBundle.message("squirrel.sdk.not.configured"));
         }
 
         GeneralCommandLine cmd = new GeneralCommandLine();
-        cmd.setExePath(executable);
+        cmd.setExePath(compiler);
 
         cmd.getParametersList().addParametersString(runConfig.getProgramParameters());
 

@@ -29,49 +29,64 @@ public class SquirrelIdeaSdkService extends SquirrelSdkService {
 
     @Override
     public String getSdkHomePath(@Nullable final Module module) {
-        ComponentManager holder = ObjectUtils.notNull(module, myProject);
-        return CachedValuesManager.getManager(myProject).getCachedValue(holder, new CachedValueProvider<String>() {
-            @Nullable
-            @Override
-            public Result<String> compute() {
-                Sdk sdk = getSquirrelSdk(module);
-                return Result.create(sdk != null ? sdk.getHomePath() : null, SquirrelIdeaSdkService.this);
-            }
-        });
+        if (isSquirrelModule(module)) {
+            ComponentManager holder = ObjectUtils.notNull(module, myProject);
+            return CachedValuesManager.getManager(myProject).getCachedValue(holder, new CachedValueProvider<String>() {
+                @Nullable
+                @Override
+                public Result<String> compute() {
+                    Sdk sdk = getSquirrelSdk(module);
+                    return Result.create(sdk != null ? sdk.getHomePath() : null, SquirrelIdeaSdkService.this);
+                }
+            });
+        }
+        else {
+            return super.getSdkHomePath(module);
+        }
     }
 
     @Nullable
     @Override
     public String getSdkVersion(@Nullable final Module module) {
-        ComponentManager holder = ObjectUtils.notNull(module, myProject);
-        return CachedValuesManager.getManager(myProject).getCachedValue(holder, new CachedValueProvider<String>() {
-            @Nullable
-            @Override
-            public Result<String> compute() {
-                Sdk sdk = getSquirrelSdk(module);
-                return Result.create(sdk != null ? sdk.getVersionString() : null, SquirrelIdeaSdkService.this);
-            }
-        });
+        if (isSquirrelModule(module)) {
+            ComponentManager holder = ObjectUtils.notNull(module, myProject);
+            return CachedValuesManager.getManager(myProject).getCachedValue(holder, new CachedValueProvider<String>() {
+                @Nullable
+                @Override
+                public Result<String> compute() {
+                    Sdk sdk = getSquirrelSdk(module);
+                    return Result.create(sdk != null ? sdk.getVersionString() : null, SquirrelIdeaSdkService.this);
+                }
+            });
+        }
+        else {
+            return super.getSdkVersion(module);
+        }
     }
 
     @Override
     public void chooseAndSetSdk(@Nullable final Module module) {
-        Sdk projectSdk = ProjectSettingsService.getInstance(myProject).chooseAndSetSdk();
-        if (projectSdk == null && module != null) {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                    if (!module.isDisposed()) {
-                        ModuleRootModificationUtil.setSdkInherited(module);
+        if (isSquirrelModule(module)) {
+            Sdk projectSdk = ProjectSettingsService.getInstance(myProject).chooseAndSetSdk();
+            if (projectSdk == null && module != null) {
+                ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!module.isDisposed()) {
+                            ModuleRootModificationUtil.setSdkInherited(module);
+                        }
                     }
-                }
-            });
+                });
+            }
+        }
+        else {
+            super.chooseAndSetSdk(module);
         }
     }
 
     @Override
     public boolean isSquirrelModule(@Nullable Module module) {
-        return super.isSquirrelModule(module) && ModuleUtil.getModuleType(module) == SquirrelModuleType.getInstance();
+        return module != null && ModuleUtil.getModuleType(module) == SquirrelModuleType.getInstance();
     }
 
     private Sdk getSquirrelSdk(@Nullable Module module) {

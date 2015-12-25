@@ -17,6 +17,7 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizerUtil;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
+import com.sqide.SquirrelBundle;
 import com.sqide.sdk.SquirrelSdkService;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -76,11 +77,11 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         String executable = SquirrelSdkService.getInstance(project).getSquirrelExecutablePath(module);
 
         if (StringUtil.isEmptyOrSpaces(executable)) {
-            throw new RuntimeConfigurationException("Squirrel SDK not configured.");
+            throw new RuntimeConfigurationException(SquirrelBundle.message("squirrel.sdk.not.configured"));
         }
 
         if (StringUtil.isEmptyOrSpaces(scriptName)) {
-            throw new RuntimeConfigurationException("Script name not given.");
+            throw new RuntimeConfigurationException(SquirrelBundle.message("script.name.not.given"));
         }
     }
 
@@ -160,5 +161,10 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
 
     public void setScriptName(String scriptName) {
         this.scriptName = scriptName;
+    }
+
+    @Nullable
+    public String getCompilerPath() {
+        return SquirrelSdkService.getInstance(getProject()).getSquirrelExecutablePath(getConfigurationModule().getModule());
     }
 }

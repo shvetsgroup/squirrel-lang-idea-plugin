@@ -37,7 +37,7 @@
         <directoryProjectGenerator implementation="com.sqide.SquirrelProjectGenerator"/>
 
         <sdkType implementation="com.sqide.sdk.SquirrelSdkType"/>
-        <projectService serviceInterface="com.sqide.sdk.SquirrelSdkService" serviceImplementation="com.sqide.sdk.SquirrelSmallIDEsSdkService" overrides="false"/>
+        <projectService serviceInterface="com.sqide.sdk.SquirrelSdkService" serviceImplementation="com.sqide.sdk.SquirrelSdkService" overrides="false"/>
         <library.presentationProvider implementation="com.sqide.sdk.SquirrelSdkLibraryPresentationProvider"/>
         <editorNotificationProvider implementation="com.sqide.inspections.WrongSdkConfigurationNotificationProvider"/>
 

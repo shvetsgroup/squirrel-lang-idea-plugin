@@ -1,5 +1,6 @@
 package com.sqide.inspections;
 
+import com.sqide.SquirrelBundle;
 import com.sqide.SquirrelFileType;
 import com.sqide.SquirrelLanguage;
 import com.sqide.sdk.SquirrelSdkService;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class WrongSdkConfigurationNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("Setup Squirrel SDK");
+  private static final Key<EditorNotificationPanel> KEY = Key.create(SquirrelBundle.message("setup.squirrel.sdk"));
 
   private final Project myProject;
 
@@ -68,8 +69,8 @@ public class WrongSdkConfigurationNotificationProvider extends EditorNotificatio
   @NotNull
   private static EditorNotificationPanel createMissingSdkPanel(@NotNull final Project project, @Nullable final Module module) {
     EditorNotificationPanel panel = new EditorNotificationPanel();
-    panel.setText(ProjectBundle.message("project.sdk.not.defined"));
-    panel.createActionLabel(ProjectBundle.message("project.sdk.setup"), new Runnable() {
+    panel.setText(SquirrelBundle.message("squirrel.sdk.not.configured"));
+    panel.createActionLabel(SquirrelBundle.message("setup.squirrel.sdk"), new Runnable() {
       @Override
       public void run() {
         SquirrelSdkService.getInstance(project).chooseAndSetSdk(module);

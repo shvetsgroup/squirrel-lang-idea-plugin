@@ -3,6 +3,8 @@ package com.sqide.sdk;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.sqide.SquirrelBundle;
 import com.sqide.SquirrelIcons;
 import com.sqide.util.SquirrelConstants;
 import org.jdom.Element;
@@ -50,7 +52,7 @@ public class SquirrelSdkType extends SdkType {
         SquirrelSdkService.LOG.debug("Validating sdk path: " + path);
         String executablePath = SquirrelSdkService.getSquirrelExecutablePath(path);
         if (executablePath == null) {
-            SquirrelSdkService.LOG.debug("Squirrel executable is not found: ");
+            SquirrelSdkService.LOG.debug("Squirrel executable is not found.");
             return false;
         }
         if (!new File(executablePath).canExecute()) {
@@ -74,9 +76,9 @@ public class SquirrelSdkType extends SdkType {
     public String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
         String version = getVersionString(sdkHome);
         if (version == null) {
-            return "Unknown Squirrel version at " + sdkHome;
+            return SquirrelBundle.message("squirrel.sdk.unknown.version.at", sdkHome);
         }
-        return "Squirrel " + version;
+        return SquirrelBundle.message("squirrel.version", version);
     }
 
     @Nullable
@@ -106,13 +108,14 @@ public class SquirrelSdkType extends SdkType {
     @NonNls
     @Override
     public String getPresentableName() {
-        return "Squirrel SDK";
+        return SquirrelBundle.message("squirrel.sdk");
     }
 
     @Override
     public void setupSdkPaths(@NotNull Sdk sdk) {
         String versionString = sdk.getVersionString();
-        if (versionString == null) throw new RuntimeException("SDK version is not defined");
+        if (versionString == null) throw new RuntimeException(SquirrelBundle.message("squirrel.sdk.version.undefined"));
+
         SdkModificator modificator = sdk.getSdkModificator();
         String path = sdk.getHomePath();
         if (path == null) return;

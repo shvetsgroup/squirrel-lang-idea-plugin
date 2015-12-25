@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SQUIRREL_SDK">
+    <CLASSES>
+      <root url="file:///usr/local/Cellar/squirrel/3.0.7" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
