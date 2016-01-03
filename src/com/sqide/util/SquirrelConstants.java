@@ -24,17 +24,20 @@ import org.jetbrains.annotations.NonNls;
 import java.util.Set;
 
 public class SquirrelConstants {
-  public static final String MODULE_TYPE_ID = "SQUIRREL_MODULE";
-  public static final String SDK_TYPE_ID = "SQUIRREL_SDK";
-  @NonNls
-  public static final String SQUIRREL_VERSION_FILE_PATH = "include/squirrel.h";
-  @NonNls
-  public static final String SQUIRREL_COMPILER_NAME = "sq";
-  public static final Set<String> KNOWN_COMPILERS = ContainerUtil.immutableSet("gc", "gccgo");
-  @NonNls
-  public static final String SQUIRREL = "squirrel";
+    public static final String MODULE_TYPE_ID = "SQUIRREL_MODULE";
+    public static final String SDK_TYPE_ID = "SQUIRREL_SDK";
+    @NonNls
+    public static final String SQUIRREL_VERSION_FILE_PATH = "include/squirrel.h";
+    @NonNls
+    public static final String SQUIRREL_COMPILER_NAME = "sq";
+    @NonNls
+    public static final String SQUIRREL = "squirrel";
 
-  private SquirrelConstants() {
+    public static final NotificationGroup SQUIRREL_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Squirrel plugin notifications");
+    public static final NotificationGroup SQUIRREL_EXECUTION_NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("Squirrel Execution", ToolWindowId.RUN);
 
-  }
+
+    private SquirrelConstants() {
+
+    }
 }

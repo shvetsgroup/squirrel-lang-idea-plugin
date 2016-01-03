@@ -62,7 +62,7 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
     @Nullable
     public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws
             ExecutionException {
-        return new SquirrelCommandLineState(this, env);
+        return new SquirrelRunningState(this, env);
     }
 
     @Override

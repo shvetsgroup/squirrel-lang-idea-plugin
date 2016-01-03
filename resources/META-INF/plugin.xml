@@ -47,6 +47,10 @@
         <runConfigurationProducer implementation="com.sqide.runner.SquirrelRunConfigProducer"/>
         <configurationType implementation="com.sqide.runner.SquirrelConfigurationType"/>
         <programRunner implementation="com.sqide.runner.SquirrelRunner"/>
+
+        <!-- debugger -->
+        <xdebugger.breakpointType implementation="com.sqide.sqdbg.breakpoint.DlvBreakpointType"/>
+
     </extensions>
 
     <application-components>
