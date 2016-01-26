@@ -1,30 +1,19 @@
 package com.sqide.runner;
 
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.KillableColoredProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.filters.TextConsoleBuilderImpl;
+import com.intellij.execution.process.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.util.ProgramParametersUtil;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
-import com.sqide.SquirrelBundle;
-import com.sqide.util.SquirrelExecutor;
-import com.sqide.util.SquirrelHistoryProcessListener;
+import com.intellij.execution.ui.ConsoleView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SquirrelRunningState extends CommandLineState {
-    private final SquirrelRunConfiguration runConfig;
-    @Nullable private SquirrelHistoryProcessListener myHistoryProcessHandler;
-    private int myDebugPort = 1234;
+    protected final SquirrelRunConfiguration runConfig;
 
     protected SquirrelRunningState(SquirrelRunConfiguration runConfig, ExecutionEnvironment environment) {
         super(environment);
@@ -34,72 +23,43 @@ public class SquirrelRunningState extends CommandLineState {
     @NotNull
     @Override
     protected ProcessHandler startProcess() throws ExecutionException {
-        GeneralCommandLine commandLine = patchExecutor(createCommonExecutor())
-                .withParameterString(StringUtil.notNullize(runConfig.getProgramParameters()))
-                .createCommandLine();
-
-        final ProcessHandler processHandler = new KillableColoredProcessHandler(commandLine);
-        processHandler.addProcessListener(new ProcessAdapter() {
-            private AtomicBoolean firstOutput = new AtomicBoolean(true);
-
-            @Override
-            public void onTextAvailable(ProcessEvent event, Key outputType) {
-                if (firstOutput.getAndSet(false)) {
-                    if (myHistoryProcessHandler != null) {
-                        myHistoryProcessHandler.apply(processHandler);
-                    }
-                }
-                super.onTextAvailable(event, outputType);
-            }
-
-            @Override
-            public void processTerminated(ProcessEvent event) {
-                super.processTerminated(event);
-            }
-        });
-        return processHandler;
+        GeneralCommandLine commandLine = getCommand();
+        return new OSProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
     }
 
-    @NotNull
-    public SquirrelExecutor createCommonExecutor() {
-        return SquirrelExecutor.in(runConfig.getConfigurationModule().getModule()).withWorkDirectory(runConfig.getWorkingDirectory());
+    private GeneralCommandLine getCommand() throws ExecutionException {
+        GeneralCommandLine commandLine = new GeneralCommandLine();
+        setExePath(commandLine);
+        setWorkDirectory(commandLine);
+        setParameters(commandLine);
+        setScript(commandLine);
+        TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(runConfig.getProject());
+        setConsoleBuilder(consoleBuilder);
+        return commandLine;
     }
 
-    protected SquirrelExecutor patchExecutor(@NotNull SquirrelExecutor executor) throws ExecutionException {
-        String compiler = runConfig.getCompilerPath();
-        if (StringUtil.isEmptyOrSpaces(compiler)) {
-            throw new ExecutionException(SquirrelBundle.message("squirrel.sdk.not.configured"));
+    public void setExePath(GeneralCommandLine commandLine) throws ExecutionException {
+        commandLine.setExePath(runConfig.getCompilerPath());
+    }
+
+    public void setWorkDirectory(GeneralCommandLine commandLine) {
+        commandLine.withWorkDirectory(runConfig.getWorkingDirectory());
+    }
+
+    public void setParameters(GeneralCommandLine commandLine) throws ExecutionException {
+        String parameters = runConfig.getProgramParameters();
+        if (parameters != null && parameters != "") {
+            commandLine.withParameters(parameters);
         }
-
-        return executor.withExePath("/bin/bash").withWorkDirectory("/Users/neochief/Desktop").withParameterString("test.sh");
-//
-//
-//        if (isDebug()) {
-//            File sqdbg = sqdbg();
-//            if (sqdbg.exists() && !sqdbg.canExecute()) {
-//                //noinspection ResultOfMethodCallIgnored
-//                sqdbg.setExecutable(true, false);
-//            }
-//            return executor.withExePath(sqdbg.getAbsolutePath()).withParameters(runConfig.getScriptName());
-//        }
-//        return executor.withExePath(compiler).withParameterString(StringUtil.notNullize(runConfig.getProgramParameters())).withParameters(runConfig.getScriptName());
     }
 
-    public boolean isDebug() {
-        return DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId());
+    public void setScript(GeneralCommandLine commandLine) throws ExecutionException {
+        commandLine.withParameters(runConfig.getScriptName());
     }
 
     @NotNull
-    private static File sqdbg() {
-        String sqdbgPath = "/Users/neochief/_SQDBG/bin/sqdbg"; // todo make configurable
-        return new File(sqdbgPath);
-    }
-
-    public void setHistoryProcessHandler(@Nullable SquirrelHistoryProcessListener historyProcessHandler) {
-        myHistoryProcessHandler = historyProcessHandler;
-    }
-
-    public void setDebugPort(int debugPort) {
-        myDebugPort = debugPort;
+    public ConsoleView createConsoleView(Executor executor) {
+        TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(runConfig.getProject());
+        return consoleBuilder.getConsole();
     }
 }

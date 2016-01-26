@@ -43,14 +43,14 @@
 
         <projectConfigurable groupId="language" provider="com.sqide.configuration.SquirrelConfigurableProvider" dynamic="true"/>
 
-
-        <runConfigurationProducer implementation="com.sqide.runner.SquirrelRunConfigProducer"/>
-        <configurationType implementation="com.sqide.runner.SquirrelConfigurationType"/>
+        <!-- runner -->
         <programRunner implementation="com.sqide.runner.SquirrelRunner"/>
+        <configurationType implementation="com.sqide.runner.SquirrelConfigurationType"/>
+        <runConfigurationProducer implementation="com.sqide.runner.SquirrelRunConfigProducer"/>
 
-        <!-- debugger -->
-        <xdebugger.breakpointType implementation="com.sqide.sqdbg.breakpoint.DlvBreakpointType"/>
-
+        <!-- debug -->
+        <programRunner implementation="com.sqide.debugger.SquirrelDebugRunner"/>
+        <xdebugger.breakpointType implementation="com.sqide.debugger.xdebug.breakpoint.SquirrelBreakpointType"/>
     </extensions>
 
     <application-components>

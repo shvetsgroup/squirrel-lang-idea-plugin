@@ -17,8 +17,7 @@ public class DebuggerTest extends PlatformLiteFixture {
             int portNumber = 1234;
 
             final Socket echoSocket = new Socket(hostName, portNumber);
-            PrintWriter out =
-                    new PrintWriter(echoSocket.getOutputStream(), true);
+            PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
 
             out.println("ab:1:test.nut");
             out.flush();

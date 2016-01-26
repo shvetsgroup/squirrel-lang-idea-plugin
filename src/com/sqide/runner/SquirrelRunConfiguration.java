@@ -5,6 +5,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.AbstractRunConfiguration;
 import com.intellij.execution.configuration.EnvironmentVariablesComponent;
 import com.intellij.execution.configurations.*;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.util.ProgramParametersUtil;
 import com.intellij.openapi.components.PathMacroManager;
@@ -19,6 +20,7 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
 import com.sqide.SquirrelBundle;
 import com.sqide.sdk.SquirrelSdkService;
+import com.sqide.debugger.SquirrelDebugRunningState;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,9 +62,13 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
     }
 
     @Nullable
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws
-            ExecutionException {
-        return new SquirrelRunningState(this, env);
+    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+        if (DefaultDebugExecutor.EXECUTOR_ID.equals(env.getExecutor().getId())) {
+            return new SquirrelDebugRunningState(this, env);
+        }
+        else {
+            return new SquirrelRunningState(this, env);
+        }
     }
 
     @Override
@@ -163,8 +169,12 @@ public class SquirrelRunConfiguration extends AbstractRunConfiguration implement
         this.scriptName = scriptName;
     }
 
-    @Nullable
-    public String getCompilerPath() {
-        return SquirrelSdkService.getInstance(getProject()).getSquirrelExecutablePath(getConfigurationModule().getModule());
+    @NotNull
+    public String getCompilerPath() throws ExecutionException {
+        String compilerPath = SquirrelSdkService.getInstance(getProject()).getSquirrelExecutablePath(getConfigurationModule().getModule());
+        if (compilerPath == null) {
+            throw new ExecutionException(SquirrelBundle.message("squirrel.sdk.not.configured"));
+        }
+        return compilerPath;
     }
 }
