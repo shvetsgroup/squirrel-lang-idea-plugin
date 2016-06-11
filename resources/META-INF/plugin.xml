@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>com.sqide.test</id>
     <name>Squirrel</name>
-    <version>1.0</version>
+    <version>0.5</version>
     <vendor email="neochief@shvetsgroup.com" url="http://shvetsgroup.com">Shvets Group</vendor>
 
     <description><![CDATA[
