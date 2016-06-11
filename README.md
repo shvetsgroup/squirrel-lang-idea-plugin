@@ -1,5 +1,5 @@
 This plugin is in early development stage. It has a basic feature set implemented, which allow basic use with
-Intellij IDEA or IDEA based IDEs, such as PHPStorm, PyCharm, etc.
+Intellij IDEA or IDEA based IDEs, such as PHPStorm, PyCharm, CLion, etc.
 
 Currently, I don't spend much time working on it, so if you want to help with any todo item, then go for it, send a PR
 and I'll review it.
