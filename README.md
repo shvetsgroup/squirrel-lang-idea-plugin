@@ -4,6 +4,9 @@ Intellij IDEA or IDEA based IDEs, such as PHPStorm, PyCharm, CLion, etc.
 Currently, I don't spend much time working on it, so if you want to help with any todo item, then go for it, send a PR
 and I'll review it.
 
+Plugin page on JetBrains repository:
+https://plugins.jetbrains.com/plugin/8412
+
 ## Contribution guide
 
 ### Preparation
