@@ -43,7 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SquirrelSdkUtil {
-    private static final Pattern SQUIRREL_VERSION_PATTERN = Pattern.compile("#define SQUIRREL_VERSION\t_SC\\" +
+    private static final Pattern SQUIRREL_VERSION_PATTERN = Pattern.compile("#define SQUIRREL_VERSION[\t ]+_SC\\" +
             "(\"Squirrel ([0-9\\.]*?) stable\"\\)");
 
     // todo test
