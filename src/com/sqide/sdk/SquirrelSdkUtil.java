@@ -184,7 +184,7 @@ public class SquirrelSdkUtil {
 
         if (!binDirectory.exists()) {
             File[] files = new File(path).listFiles();
-            for (File file : files) {
+            for (File file : files != null ? files : new File[0]) {
                 if (file.isDirectory()) {
                     String versionDir = file.getAbsolutePath();
                     binDirectory = new File(versionDir, "bin");
