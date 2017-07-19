@@ -45,12 +45,6 @@ public class SquirrelModuleType extends ModuleType<SquirrelModuleBuilder> {
 
     @Nullable
     @Override
-    public Icon getBigIcon() {
-        return SquirrelIcons.SQUIRREL;
-    }
-
-    @Nullable
-    @Override
     public Icon getNodeIcon(boolean isOpened) {
         return SquirrelIcons.NUT_FILE;
     }

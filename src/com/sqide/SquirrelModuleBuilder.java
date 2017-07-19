@@ -45,11 +45,6 @@ public class SquirrelModuleBuilder extends ModuleBuilder {
     }
 
     @Override
-    public Icon getBigIcon() {
-        return SquirrelIcons.SQUIRREL;
-    }
-
-    @Override
     public Icon getNodeIcon() {
         return SquirrelIcons.SQUIRREL;
     }

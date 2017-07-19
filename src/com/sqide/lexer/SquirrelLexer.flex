@@ -79,7 +79,7 @@ FLOAT=((([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))([eE][+-]?[0-9]+)?)|([0-9]+([eE][+-]?[
 STRING=(@\"([^\"]|\"\")*\"|\"(\\.|[^\"\n\r])*\")
 NL=\r|\n|\r\n
 WS=[ \t\f]
-ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+-*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
+ANY=[ \t\f\r\na-zA-Z0-9_\-\.,+*&\^%@!~|<>/\?:;\(\)\{\}\[\]]
 
 // SS means SYNTHETIC_SEMICOLON
 %state MULTI_LINE_COMMENT_STATE, SEE_IF_NEXT_IS_NL, MAYBE_SET_SS, MAYBE_TERMINATE_KEYWORD_WITH_NL, PREVENT_SS_AFTER_PARENTHESES, PREVENT_SS_UNTIL_BRACE, DO_STATEMENT, TRY_STATEMENT, BRACES, CLASS_DECLARATION_BRACES
